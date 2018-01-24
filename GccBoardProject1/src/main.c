@@ -92,6 +92,17 @@ int main (void)
 	
 	uint8_t string[] = "Hello World!\r\n";
 	printf(string);
+	    
+		while (1) {
+			uint8_t buffer[50];
+		    scanf("%s", buffer);
+		    
+		    if (buffer) {
+			    printf("got the following: %s\r\n", buffer);
+		    }
+	    }
+	
+	
 	//usart_write_buffer_wait(&usart_instance, string, sizeof(string));
 	return 0;
 }
