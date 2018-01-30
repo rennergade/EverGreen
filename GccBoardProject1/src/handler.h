@@ -8,17 +8,11 @@
 
 #define DATA_LENGTH 8
 
-//version info
-#define VERSION "0.0.0"
 
 
-
-void input_handle(char* cmd, char* a1, char* a2, char* a3);
+void input_handle(int argc, char **argv);
 
 void configure_usart(void);
-void usart_read_callback(const struct usart_module *const usart_module);
-void usart_write_callback(const struct usart_module *const usart_module);
-void configure_usart_callbacks(void);
 
 void configure_i2c(void);
 void i2c_write_complete_callback(struct i2c_master_module *const module);
@@ -34,8 +28,6 @@ struct usart_module usart_instance;
 struct adc_module adc_instance;
 static uint8_t rd_buffer[DATA_LENGTH];
 struct i2c_master_module i2c_master_instance;
-
-volatile uint8_t rx_buffer[5];
 
 
 static uint8_t wr_buffer[DATA_LENGTH] = {
@@ -62,5 +54,3 @@ static struct i2c_master_packet rd_packet = {
 	.high_speed       = false,
 	.hs_master_code   = 0x00,
 };
-
-
