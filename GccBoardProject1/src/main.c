@@ -3,6 +3,7 @@
 #include <ctype.h>
 #include "handler.h"
 
+//TODO: bug with backspace doesn't allow whitespace etc
 
 
 #define CR '\r'                                                 /// Carriage Return
@@ -50,6 +51,8 @@ bool processUserInput(void)
 
 	case BS:
 		/// User input a backspace -- remove the character
+		if(!numberCharsRead) //no characters written
+			break;
 		numberCharsRead--;
 		rx_buffer[numberCharsRead] = NULLCHAR;
 

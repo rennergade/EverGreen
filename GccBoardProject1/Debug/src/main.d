@@ -120,22 +120,23 @@ src/main.d src/main.o: ../src/main.c \
  ../src/ASF/sam0/drivers/system/power/power_sam_d_r_h/power.h \
  ../src/ASF/sam0/drivers/system/reset/reset_sam_d_r_h/reset.h \
  ../src/ASF/sam0/drivers/adc/adc_sam_d_r_h/adc_feature.h \
- ../src/ASF/common2/services/delay/delay.h \
- ../src/ASF/common2/services/delay/sam0/systick_counter.h \
- ../src/ASF/common/boards/board.h \
- ../src/ASF/sam0/boards/samw25_xplained_pro/samw25_xplained_pro.h \
- ../src/config/conf_board.h ../src/ASF/common/services/ioport/ioport.h \
- ../src/ASF/common/services/ioport/sam0/ioport.h \
- ../src/ASF/sam0/drivers/port/port.h \
+ ../src/ASF/sam0/components/sensor/at30tse75x/at30tse75x.h \
+ ../src/ASF/sam0/drivers/sercom/i2c/i2c_common.h \
  ../src/ASF/sam0/drivers/sercom/sercom.h \
  ../src/ASF/sam0/drivers/system/interrupt/system_interrupt.h \
  ../src/ASF/sam0/drivers/system/interrupt/system_interrupt_samd21/system_interrupt_features.h \
  ../src/ASF/sam0/drivers/sercom/sercom_pinout.h \
- ../src/ASF/sam0/drivers/sercom/sercom_interrupt.h \
- ../src/ASF/sam0/drivers/sercom/sercom.h \
- ../src/ASF/sam0/drivers/sercom/i2c/i2c_common.h \
  ../src/ASF/sam0/drivers/sercom/i2c/i2c_master.h \
  ../src/ASF/sam0/drivers/sercom/i2c/i2c_common.h \
+ ../src/ASF/sam0/drivers/sercom/sercom_interrupt.h \
+ ../src/ASF/sam0/drivers/sercom/sercom.h ../src/config/conf_at30tse75x.h \
+ ../src/ASF/common/boards/board.h \
+ ../src/ASF/sam0/boards/samw25_xplained_pro/samw25_xplained_pro.h \
+ ../src/config/conf_board.h ../src/ASF/common2/services/delay/delay.h \
+ ../src/ASF/common2/services/delay/sam0/systick_counter.h \
+ ../src/ASF/common/services/ioport/ioport.h \
+ ../src/ASF/common/services/ioport/sam0/ioport.h \
+ ../src/ASF/sam0/drivers/port/port.h \
  ../src/ASF/sam0/drivers/sercom/i2c/i2c_master_interrupt.h \
  ../src/ASF/sam0/drivers/sercom/i2c/i2c_master.h \
  ../src/ASF/sam0/drivers/sercom/i2c/i2c_slave.h \
@@ -396,21 +397,9 @@ d:\program\ files\atmel\ studio\ 7.0\7.0\toolchain\arm\arm-gnu-toolchain\arm-non
 
 ../src/ASF/sam0/drivers/adc/adc_sam_d_r_h/adc_feature.h:
 
-../src/ASF/common2/services/delay/delay.h:
+../src/ASF/sam0/components/sensor/at30tse75x/at30tse75x.h:
 
-../src/ASF/common2/services/delay/sam0/systick_counter.h:
-
-../src/ASF/common/boards/board.h:
-
-../src/ASF/sam0/boards/samw25_xplained_pro/samw25_xplained_pro.h:
-
-../src/config/conf_board.h:
-
-../src/ASF/common/services/ioport/ioport.h:
-
-../src/ASF/common/services/ioport/sam0/ioport.h:
-
-../src/ASF/sam0/drivers/port/port.h:
+../src/ASF/sam0/drivers/sercom/i2c/i2c_common.h:
 
 ../src/ASF/sam0/drivers/sercom/sercom.h:
 
@@ -420,15 +409,31 @@ d:\program\ files\atmel\ studio\ 7.0\7.0\toolchain\arm\arm-gnu-toolchain\arm-non
 
 ../src/ASF/sam0/drivers/sercom/sercom_pinout.h:
 
+../src/ASF/sam0/drivers/sercom/i2c/i2c_master.h:
+
+../src/ASF/sam0/drivers/sercom/i2c/i2c_common.h:
+
 ../src/ASF/sam0/drivers/sercom/sercom_interrupt.h:
 
 ../src/ASF/sam0/drivers/sercom/sercom.h:
 
-../src/ASF/sam0/drivers/sercom/i2c/i2c_common.h:
+../src/config/conf_at30tse75x.h:
 
-../src/ASF/sam0/drivers/sercom/i2c/i2c_master.h:
+../src/ASF/common/boards/board.h:
 
-../src/ASF/sam0/drivers/sercom/i2c/i2c_common.h:
+../src/ASF/sam0/boards/samw25_xplained_pro/samw25_xplained_pro.h:
+
+../src/config/conf_board.h:
+
+../src/ASF/common2/services/delay/delay.h:
+
+../src/ASF/common2/services/delay/sam0/systick_counter.h:
+
+../src/ASF/common/services/ioport/ioport.h:
+
+../src/ASF/common/services/ioport/sam0/ioport.h:
+
+../src/ASF/sam0/drivers/port/port.h:
 
 ../src/ASF/sam0/drivers/sercom/i2c/i2c_master_interrupt.h:
 

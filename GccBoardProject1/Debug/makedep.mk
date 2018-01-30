@@ -2,7 +2,11 @@
 # Automatically-generated file. Do not edit or delete the file
 ################################################################################
 
+src\TSL2561\TSL2561.c
+
 src\ASF\common2\services\delay\sam0\systick_counter.c
+
+src\ASF\sam0\components\sensor\at30tse75x\at30tse75x.c
 
 src\ASF\sam0\drivers\adc\adc_sam_d_r_h\adc.c
 

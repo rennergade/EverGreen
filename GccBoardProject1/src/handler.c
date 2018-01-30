@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include "handler.h"
+#include "TSL2561/TSL2561.h"
 
 #define BL_VERSION "0.0.0" /// bootloader version info
 
@@ -77,7 +78,7 @@ void help()
 	       "ip - returns the IPv4 address \r\n"
 	       "read_<sensor> [readings] [interval] - Prints a number of readings at the given interval \r\n"
 	       "adc_get [port] [pin] - Get the ADC value of the given pin. \r\n"
-	       "mcu_temp - Prints the temperature of the mcu from the on-board temp sensor in Celsius. \r\n"
+	       "mcu_temp - Reports the temperature of the mcu in Celsius. \r\n"
 	       "i2c_scan - Prints out a list connected I2C slave addresses \r\n");
 }
 
@@ -190,7 +191,14 @@ void ip()
  */
 void read_sensor(char *sensor_name, int readings, int interval_ms)
 {
-	printf("Dummy info\r\n");
+	//TODO: check for values greater than 0 for readings and interval_ms
+	static uint8_t read_buffer[10];
+	
+	if(!strcmp("lux", sensor_name)) {
+		tsl2561_init();
+		uint32_t lux_value = getLuminosity();
+		printf("Current lux: %d\r\n", lux_value);
+	}
 }
 
 /**
@@ -206,19 +214,22 @@ void adc_get(char port, int pin)
 	int pin_val = -1;
 
 	switch (port) {
-	case ADC_PORT:
-		switch (pin) {
-		case ADC_PIN:
-			pin_val = ADC_POSITIVE_INPUT_PIN0;
+		case ADC_PORT:
+			switch (pin) {
+				case ADC_PIN:
+					pin_val = ADC_POSITIVE_INPUT_PIN0;
+					break;
+				default:
+					printf("fail on pin ADC can currently only be configured on P%c%d. Please try again.\r\n", toupper(ADC_PORT), ADC_PIN);
+					printf("%d", pin);
+					break;
+			}
 		default:
-			printf("ADC can currently only be configured on P%c%d. Please try again.\r\n", toupper(ADC_PORT), ADC_PIN);
+			printf("fail on port ADC can currently only be configured on %c%d. Please try again.\r\n", toupper(ADC_PORT), ADC_PIN);
+			printf(port);
 			break;
-		}
-		break;
-	default:
-		printf("ADC can currently only be configured on %c%d. Please try again.\r\n", toupper(ADC_PORT), ADC_PIN);
-		break;
 	}
+	
 	if (pin_val != -1) {
 		configure_adc(pin_val);
 		uint16_t adc_result;
@@ -247,12 +258,17 @@ void mcu_temp()
 	/* Wait for conversion to be done and read out result */
 	do {
 	} while (adc_read(&adc_instance, &adc_result) == STATUS_BUSY);
-
-	//need to convert ADC value to temperature, replace factor with equation
-	int factor = 1;
-	int temperature = adc_result * factor;
-
-	printf("MCU temperature: %d\r\n", temperature);
+	
+	//Equation found here: https://github.com/jrowberg/i2cdevlib/pull/59/files
+	double temperature;
+	if((adc_result & 0x8000) == 0) {
+      temperature = (adc_result >> 8) + ((adc_result & 0x00F0)>>4)*0.5;
+    }
+    else {
+      uint16_t twosComplement = (~adc_result) + 1;
+      temperature = - (twosComplement >> 8) - ((twosComplement & 0x00F0)>>4)*0.5;
+    }
+	printf("MCU temperature: %dC \r\n", (int) temperature);
 }
 
 /**
@@ -389,7 +405,7 @@ void input_handle(int argc, char **argv)
 		}
 		int reading = atoi(argv[2]);
 		int interval_ms = atoi(argv[3]);
-		if (isdigit(reading) && isdigit(interval_ms))
+		if (isdigit(argv[2][0]) && isdigit(argv[3][0]))
 			read_sensor(argv[1], reading, interval_ms);
 		else
 			print_general_error("read");
@@ -399,7 +415,14 @@ void input_handle(int argc, char **argv)
 			print_args_error("adc_get", required_args, argc);
 			return;
 		}
-		adc_get(argv[1], argv[2]);
+		char port = argv[1][0];
+		int pin = atoi(argv[2]);
+		//TODO: isdigit should check [2][0] for all isdigit calls
+		if (isdigit(argv[2][0])) {
+			adc_get(port, pin);
+		} else {
+			print_general_error("adc_get");
+		}
 	} else if (!(strcmp("mcu_temp", argv[0]))) {
 		int required_args = 1;
 		if (argc != required_args) {
@@ -413,6 +436,7 @@ void input_handle(int argc, char **argv)
 			print_args_error("i2c_scan", required_args, argc);
 			return;
 		}
+		printf("running i2c_scan\r\n");
 		i2c_scan();
 	} else {
 		printf("Invalid input. See help for correct usage.\r\n");
@@ -480,14 +504,21 @@ void configure_usart(void)
 	struct usart_config config_usart;
 
 	usart_get_config_defaults(&config_usart);
-	config_usart.baudrate = 115200;
-	config_usart.mux_setting = USART_RX_3_TX_2_XCK_3;
-	config_usart.pinmux_pad0 = PINMUX_UNUSED;
-	config_usart.pinmux_pad1 = PINMUX_UNUSED;
-	config_usart.pinmux_pad2 = PINMUX_PA20D_SERCOM3_PAD2;
-	config_usart.pinmux_pad3 = PINMUX_PA21D_SERCOM3_PAD3;
+	config_usart.baudrate = 9600;
+	config_usart.mux_setting = EDBG_CDC_SERCOM_MUX_SETTING;
+	config_usart.pinmux_pad0 = EDBG_CDC_SERCOM_PINMUX_PAD0;
+	config_usart.pinmux_pad1 = EDBG_CDC_SERCOM_PINMUX_PAD1;
+	config_usart.pinmux_pad2 = EDBG_CDC_SERCOM_PINMUX_PAD2;
+	config_usart.pinmux_pad3 = EDBG_CDC_SERCOM_PINMUX_PAD3;
 
-	stdio_serial_init(&usart_instance, SERCOM3, &config_usart);
+	
+	//config_usart.mux_setting = USART_RX_3_TX_2_XCK_3;
+	//config_usart.pinmux_pad0 = PINMUX_UNUSED;
+	//config_usart.pinmux_pad1 = PINMUX_UNUSED;
+	//config_usart.pinmux_pad2 = PINMUX_PA20D_SERCOM3_PAD2;
+	//config_usart.pinmux_pad3 = PINMUX_PA21D_SERCOM3_PAD3;
+
+	stdio_serial_init(&usart_instance, EDBG_CDC_MODULE, &config_usart);
 
 	usart_enable(&usart_instance);
 }
