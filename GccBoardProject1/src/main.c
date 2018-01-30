@@ -29,8 +29,9 @@ bool processUserInput(void)
 	char singleCharInput;
 	volatile enum status_code uartReadCode = usart_read_buffer_wait(&usart_instance, &singleCharInput, 1);
 
-	if (STATUS_OK != uartReadCode)
+	if (STATUS_OK != uartReadCode) {
 		return false;
+	}
 	if (STATUS_OK == uartReadCode) {
 		volatile enum status_code uartWriteCode = usart_write_buffer_wait(&usart_instance, &singleCharInput, 1);
 	}
@@ -107,12 +108,15 @@ int main(void)
 		argv[i] = malloc(sizeof(char) * MAX_ARG_LENGTH);
 
 	//TODO: print version information
-
+	printf("Welcome to the Evergreen CLI.\r\n");
+	printf("> ");
 	while (1) {
 		bool commandEntered = processUserInput();
 		if (commandEntered) {
+			fix_args();
 			input_handle(argc, argv); //fix
 			argc = 0;
+			printf("> ");
 		}
 	}
 

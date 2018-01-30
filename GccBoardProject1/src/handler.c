@@ -67,18 +67,18 @@ int get_gpio_pin(char port, int pin)
  */
 void help()
 {
-	printf("help																- Prints all the available commands and a short synopsis\r\n"
-	       "ver_bl															- Prints the bootloader firmware version\r\n"
-	       "ver_app															- Prints the application code firmware version\r\n"
-	       "gpio_set [port] [pin]								- Set a GPIO pin to high / 1\r\n"
-	       "gpio_clear [port] [pin]							- Set a GPIO pin to low / 0\r\n"
-	       "gpio_get [port] [pin]								- Get state of specified GPIO pin\r\n"
-	       "mac																	- returns the mac address of the device\r\n"
-	       "ip									                - returns the ip address of the device in the standard format: ex. 255.255.255.255\r\n"
-	       "read_<sensor> [readings] [interval]	- Prints a number of readings at the given interval\r\n"
-	       "adc_get [port] [pin]								- Get the ADC value of the given pin.\r\n"
-	       "mcu_temp														- Prints the temperature of the mcu from the on-board temp sensor in celsius.\r\n"
-	       "i2c_scan														- Prints out a list of addresses for devices on the I2C bus after scanning through all possible 7-bit combinations.\r\n");
+	printf("help - Prints all the available commands and a short synopsis \r\n"
+	       "ver_bl - Prints the bootloader firmware version \r\n"
+	       "ver_app	- Prints the application code firmware version \r\n"
+	       "gpio_set [port] [pin] - Set a GPIO pin to high / 1 \r\n"
+	       "gpio_clear [port] [pin]	- Set a GPIO pin to low / 0 \r\n"
+	       "gpio_get [port] [pin] - Get state of specified GPIO pin \r\n"
+	       "mac - returns the mac address of the device \r\n"
+	       "ip - returns the IPv4 address \r\n"
+	       "read_<sensor> [readings] [interval] - Prints a number of readings at the given interval \r\n"
+	       "adc_get [port] [pin] - Get the ADC value of the given pin. \r\n"
+	       "mcu_temp - Prints the temperature of the mcu from the on-board temp sensor in Celsius. \r\n"
+	       "i2c_scan - Prints out a list connected I2C slave addresses \r\n");
 }
 
 /**
@@ -175,7 +175,7 @@ void mac()
  */
 void ip()
 {
-	printf("255.255.255.255");
+	printf("255.255.255.255 \r\n");
 }
 
 /**
@@ -190,7 +190,7 @@ void ip()
  */
 void read_sensor(char *sensor_name, int readings, int interval_ms)
 {
-	printf("Dummy info");
+	printf("Dummy info\r\n");
 }
 
 /**
