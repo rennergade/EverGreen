@@ -79,7 +79,9 @@ void help()
 	       "read_<sensor> [readings] [interval] - Prints a number of readings at the given interval \r\n"
 	       "adc_get [port] [pin] - Get the ADC value of the given pin. \r\n"
 	       "mcu_temp - Reports the temperature of the mcu in Celsius. \r\n"
-	       "i2c_scan - Prints out a list connected I2C slave addresses \r\n");
+	       "i2c_scan - Prints out a list connected I2C slave addresses \r\n"
+		   "relay_set - turns on relay \r\n"
+		   "relay_clear - turns off relay \r\n");
 }
 
 /**
@@ -437,6 +439,20 @@ void input_handle(int argc, char **argv)
 		}
 		printf("running i2c_scan\r\n");
 		i2c_scan();
+	} else if (!(strcmp("relay_set", argv[0]))) {
+		int required_args = 1;
+		if (argc != required_args) {
+			print_args_error("relay_set", required_args, argc);
+			return;
+		}
+		gpio_set('b', 2);
+	}  else if (!(strcmp("relay_clear", argv[0]))) {
+		int required_args = 1;
+		if (argc != required_args) {
+			print_args_error("relay_clear", required_args, argc);
+			return;
+		}
+		gpio_clear('b', 2);
 	} else {
 		printf("Invalid input. See help for correct usage.\r\n");
 	}
