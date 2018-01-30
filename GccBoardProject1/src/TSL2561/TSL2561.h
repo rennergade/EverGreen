@@ -6,6 +6,9 @@
  */ 
 
 
+/// NOTE: this code is adapted from adafruits TSL2561 arduino library to work on a SAMD21 
+/// see https://github.com/adafruit/Adafruit_TSL2561 for more information
+
 #ifndef TSL2561_H_
 #define TSL2561_H_
 

@@ -11,7 +11,7 @@
 
 
 /// Available GPIO pins for A and B ports
-#define GPIO_PIN_A_1 8
+#define GPIO_PIN_A_1 8 //TODO: change a8/a9 as these are i2c
 #define GPIO_PIN_A_2 9
 #define GPIO_PIN_B_1 2
 #define GPIO_PIN_B_2 3
@@ -116,8 +116,8 @@ void gpio_set(char port, int pin)
 	int pin_val = get_gpio_pin(port, pin);
 
 	if (pin_val != -1) {
-		configure_port_pins_set(pin); //TODO: decide if this is necessary
-		port_pin_set_output_level(pin_val, 1);
+		configure_port_pins_set(pin_val); //TODO: decide if this is necessary
+		port_pin_set_output_level(pin_val, true);
 
 		printf("Pin %d set high\r\n", pin_val);
 	}
@@ -135,7 +135,7 @@ void gpio_clear(char port, int pin)
 	int pin_val = get_gpio_pin(port, pin);
 
 	if (pin_val != -1) {
-		configure_port_pins_set(pin); //TODO: decide if this is necessary
+		configure_port_pins_set(pin_val); //TODO: decide if this is necessary
 		port_pin_set_output_level(pin_val, 0);
 
 		printf("Pin %d cleared\r\n", pin_val);
@@ -153,7 +153,7 @@ void gpio_get(char port, int pin)
 {
 	int pin_val = get_gpio_pin(port, pin);
 
-	configure_port_pins_get(pin); //TODO: decide if this is necessary
+	configure_port_pins_get(pin_val); //TODO: decide if this is necessary
 	int state = port_pin_get_input_level(pin_val);
 	printf("pin %d value: %d\r\n", pin_val, state);
 }
@@ -221,12 +221,11 @@ void adc_get(char port, int pin)
 					break;
 				default:
 					printf("fail on pin ADC can currently only be configured on P%c%d. Please try again.\r\n", toupper(ADC_PORT), ADC_PIN);
-					printf("%d", pin);
 					break;
 			}
+			break;
 		default:
 			printf("fail on port ADC can currently only be configured on %c%d. Please try again.\r\n", toupper(ADC_PORT), ADC_PIN);
-			printf(port);
 			break;
 	}
 	
@@ -237,8 +236,8 @@ void adc_get(char port, int pin)
 		/* Wait for conversion to be done and read out result */
 		do {
 		} while (adc_read(&adc_instance, &adc_result) == STATUS_BUSY);
-
-		printf("Pin %d ADC value: %d\r\n", pin_val, adc_result);
+		float voltage = (adc_result/4095.0)*1.65; //TODO: set values, NO MAGIC NUMBERS
+		printf("Voltage at P%c%d: %f\r\n", toupper(port), pin_val, voltage);
 	}
 }
 
@@ -355,7 +354,7 @@ void input_handle(int argc, char **argv)
 		}
 		char port = argv[1][0];
 		int pin = atoi(argv[2]);
-		if (isdigit(pin))
+		if (isdigit(argv[2][0]))
 			gpio_set(port, pin);
 		else
 			print_general_error("gpio_set");
@@ -367,7 +366,7 @@ void input_handle(int argc, char **argv)
 		}
 		char port = argv[1][0];
 		int pin = atoi(argv[2]);
-		if (isdigit(pin))
+		if (isdigit(argv[2][0]))
 			gpio_clear(port, pin);
 		else
 			print_general_error("gpio_clear");
@@ -379,7 +378,7 @@ void input_handle(int argc, char **argv)
 		}
 		char port = argv[1][0];
 		int pin = atoi(argv[2]);
-		if (isdigit(pin))
+		if (isdigit(argv[2][0]))
 			gpio_get(port, pin);
 		else
 			print_general_error("gpio_get");
@@ -529,7 +528,7 @@ void configure_usart(void)
  *
  * Configuration as follows:
  *      @li ADC Pin: @c pin
- *      @li Reference voltage: VCC (3.3V)
+ *      @li Reference voltage: 1/2* VCC (1.65V)
  *      @li clock prescale: 16x
  * @param pin pin to read value from
  */
