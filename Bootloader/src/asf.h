@@ -52,9 +52,6 @@
  * running the ASF driver selector tool. Any changes will be discarded.
  */
 
-// From module: CRC-32 calculation
-#include <crc32.h>
-
 // From module: Common SAM0 compiler driver
 #include <compiler.h>
 #include <status_codes.h>
@@ -90,16 +87,6 @@
 #include <sercom.h>
 #include <sercom_interrupt.h>
 
-// From module: SERCOM I2C - Master Mode I2C (Callback APIs)
-#include <i2c_common.h>
-#include <i2c_master.h>
-#include <i2c_master_interrupt.h>
-
-// From module: SERCOM I2C - Slave Mode I2C (Callback APIs)
-#include <i2c_common.h>
-#include <i2c_slave.h>
-#include <i2c_slave_interrupt.h>
-
 // From module: SERCOM SPI - Serial Peripheral Interface (Callback APIs)
 #include <spi.h>
 #include <spi_interrupt.h>
@@ -132,9 +119,5 @@
 
 // From module: USART - Serial interface- SAM implementation for devices with only USART
 #include <serial.h>
-
-// From module: WDT - Watchdog Timer (Callback APIs)
-#include <wdt.h>
-#include <wdt_callback.h>
 
 #endif // ASF_H
