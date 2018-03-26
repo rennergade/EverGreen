@@ -26,7 +26,7 @@
     <OverrideVtorValue>exception_table</OverrideVtorValue>
     <BootSegment>2</BootSegment>
     <ResetRule>0</ResetRule>
-    <eraseonlaunchrule>1</eraseonlaunchrule>
+    <eraseonlaunchrule>0</eraseonlaunchrule>
     <EraseKey />
     <AsfFrameworkConfig>
       <framework-data>
@@ -38,7 +38,8 @@
           <option id="sam0.drivers.nvm" value="Add" config="" content-id="Atmel.ASF" />
           <option id="sam0.drivers.port" value="Add" config="" content-id="Atmel.ASF" />
           <option id="sam0.drivers.system" value="Add" config="" content-id="Atmel.ASF" />
-          <option id="sam0.utils.stdio.stdio_serial" value="Add" config="" content-id="Atmel.ASF" />
+          <option id="thirdparty.wireless.addons.sio2host" value="Add" config="uart" content-id="Atmel.ASF" />
+          <option id="sam0.drivers.dsu_crc32" value="Add" config="" content-id="Atmel.ASF" />
           <option id="sam0.utils.linker_scripts" value="Add" config="" content-id="Atmel.ASF" />
         </options>
         <configurations>
@@ -245,13 +246,20 @@
           <file path="src/ASF/sam0/utils/stdio/read.c" framework="" version="3.35.1" source="sam0\utils\stdio\read.c" changed="False" content-id="Atmel.ASF" />
           <file path="src/ASF/sam0/utils/stdio/write.c" framework="" version="3.35.1" source="sam0\utils\stdio\write.c" changed="False" content-id="Atmel.ASF" />
           <file path="src/ASF/sam0/drivers/nvm/nvm.c" framework="" version="3.35.1" source="sam0\drivers\nvm\nvm.c" changed="False" content-id="Atmel.ASF" />
-          <file path="src/ASF/sam0/drivers/nvm/quick_start_basic/qs_nvm_basic.h" framework="" version="3.35.1" source="sam0\drivers\nvm\quick_start_basic\qs_nvm_basic.h" changed="False" content-id="Atmel.ASF" />
-          <file path="src/ASF/sam0/drivers/nvm/nvm.h" framework="" version="3.35.1" source="sam0\drivers\nvm\nvm.h" changed="False" content-id="Atmel.ASF" />
           <file path="src/ASF/common2/services/delay/sam0/systick_counter.c" framework="" version="3.35.1" source="common2\services\delay\sam0\systick_counter.c" changed="False" content-id="Atmel.ASF" />
           <file path="src/ASF/common2/services/delay/delay.h" framework="" version="3.35.1" source="common2\services\delay\delay.h" changed="False" content-id="Atmel.ASF" />
           <file path="src/ASF/common2/services/delay/sam0/systick_counter.h" framework="" version="3.35.1" source="common2\services\delay\sam0\systick_counter.h" changed="False" content-id="Atmel.ASF" />
           <file path="src/ASF/common/services/ioport/sam0/ioport.h" framework="" version="3.35.1" source="common\services\ioport\sam0\ioport.h" changed="False" content-id="Atmel.ASF" />
           <file path="src/ASF/common/services/ioport/ioport.h" framework="" version="3.35.1" source="common\services\ioport\ioport.h" changed="False" content-id="Atmel.ASF" />
+          <file path="src/ASF/thirdparty/wireless/addons/sio2host/uart/sio2host.c" framework="" version="3.35.1" source="thirdparty\wireless\addons\sio2host\uart\sio2host.c" changed="False" content-id="Atmel.ASF" />
+          <file path="src/ASF/thirdparty/wireless/addons/sio2host/uart/sio2host.h" framework="" version="3.35.1" source="thirdparty\wireless\addons\sio2host\uart\sio2host.h" changed="False" content-id="Atmel.ASF" />
+          <file path="src/Config/conf_sio2host.h" framework="" version="3.35.1" source="thirdparty\wireless\addons\sio2host\module_config\conf_sio2host.h" changed="False" content-id="Atmel.ASF" />
+          <file path="src/ASF/sam0/drivers/nvm/quick_start_basic/qs_nvm_basic.h" framework="" version="3.35.1" source="sam0\drivers\nvm\quick_start_basic\qs_nvm_basic.h" changed="False" content-id="Atmel.ASF" />
+          <file path="src/ASF/sam0/drivers/nvm/nvm.h" framework="" version="3.35.1" source="sam0\drivers\nvm\nvm.h" changed="False" content-id="Atmel.ASF" />
+          <file path="src/ASF/sam0/drivers/dsu/crc32/crc32.c" framework="" version="3.35.1" source="sam0\drivers\dsu\crc32\crc32.c" changed="False" content-id="Atmel.ASF" />
+          <file path="src/ASF/sam0/drivers/dsu/crc32/crc32.h" framework="" version="3.35.1" source="sam0\drivers\dsu\crc32\crc32.h" changed="False" content-id="Atmel.ASF" />
+          <file path="src/ASF/sam0/drivers/pac/pac.h" framework="" version="3.35.1" source="sam0\drivers\pac\pac.h" changed="False" content-id="Atmel.ASF" />
+          <file path="src/ASF/sam0/drivers/pac/pac_sam_d_r_h/pac.c" framework="" version="3.35.1" source="sam0\drivers\pac\pac_sam_d_r_h\pac.c" changed="False" content-id="Atmel.ASF" />
         </files>
         <documentation help="http://asf.atmel.com/docs/3.35.1/common.applications.user_application.sam0_system.user_board.atsamd21g18a/html/index.html" />
         <offline-documentation help="" />
@@ -263,7 +271,7 @@
       </framework-data>
     </AsfFrameworkConfig>
     <avrtool>com.atmel.avrdbg.tool.edbg</avrtool>
-    <avrtoolserialnumber>ATML2449020200004334</avrtoolserialnumber>
+    <avrtoolserialnumber>ATML2449020200009424</avrtoolserialnumber>
     <avrdeviceexpectedsignature>0x10010305</avrdeviceexpectedsignature>
     <avrtoolinterface>SWD</avrtoolinterface>
     <com_atmel_avrdbg_tool_edbg>
@@ -274,10 +282,21 @@
         <InterfaceName>SWD</InterfaceName>
       </ToolOptions>
       <ToolType>com.atmel.avrdbg.tool.edbg</ToolType>
-      <ToolNumber>ATML2449020200004334</ToolNumber>
+      <ToolNumber>ATML2449020200009424</ToolNumber>
       <ToolName>EDBG MSD</ToolName>
     </com_atmel_avrdbg_tool_edbg>
     <avrtoolinterfaceclock>2000000</avrtoolinterfaceclock>
+    <custom>
+      <ToolOptions xmlns="">
+        <InterfaceProperties>
+        </InterfaceProperties>
+        <InterfaceName>SWD</InterfaceName>
+      </ToolOptions>
+      <ToolType xmlns="">custom</ToolType>
+      <ToolNumber xmlns="">
+      </ToolNumber>
+      <ToolName xmlns="">Custom Programming Tool</ToolName>
+    </custom>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <ToolchainSettings>
@@ -329,10 +348,15 @@
       <Value>../src/ASF/sam0/drivers/sercom/usart</Value>
       <Value>../src/ASF/sam0/utils/stdio/stdio_serial</Value>
       <Value>../src/ASF/common/services/serial</Value>
-      <Value>../src/ASF/sam0/drivers/nvm</Value>
       <Value>../src/ASF/common2/services/delay</Value>
       <Value>../src/ASF/common2/services/delay/sam0</Value>
       <Value>../src/ASF/common/services/ioport</Value>
+      <Value>../src/ASF/thirdparty/wireless/addons/sio2host/uart</Value>
+      <Value>../src/ASF/sam0/drivers/nvm</Value>
+      <Value>../src/ASF/sam0/drivers/dsu</Value>
+      <Value>../src/ASF/sam0/drivers/dsu/crc32</Value>
+      <Value>../src/ASF/sam0/drivers/pac</Value>
+      <Value>../src/ASF/sam0/drivers/pac/pac_sam_d_r_h</Value>
     </ListValues>
   </armgcc.compiler.directories.IncludePaths>
   <armgcc.compiler.optimization.level>Optimize for size (-Os)</armgcc.compiler.optimization.level>
@@ -386,10 +410,15 @@
       <Value>../src/ASF/sam0/drivers/sercom/usart</Value>
       <Value>../src/ASF/sam0/utils/stdio/stdio_serial</Value>
       <Value>../src/ASF/common/services/serial</Value>
-      <Value>../src/ASF/sam0/drivers/nvm</Value>
       <Value>../src/ASF/common2/services/delay</Value>
       <Value>../src/ASF/common2/services/delay/sam0</Value>
       <Value>../src/ASF/common/services/ioport</Value>
+      <Value>../src/ASF/thirdparty/wireless/addons/sio2host/uart</Value>
+      <Value>../src/ASF/sam0/drivers/nvm</Value>
+      <Value>../src/ASF/sam0/drivers/dsu</Value>
+      <Value>../src/ASF/sam0/drivers/dsu/crc32</Value>
+      <Value>../src/ASF/sam0/drivers/pac</Value>
+      <Value>../src/ASF/sam0/drivers/pac/pac_sam_d_r_h</Value>
     </ListValues>
   </armgcc.assembler.general.IncludePaths>
   <armgcc.preprocessingassembler.general.AssemblerFlags>-DARM_MATH_CM0PLUS=true -DBOARD=USER_BOARD -DSPI_CALLBACK_MODE=true -DUSART_CALLBACK_MODE=true -DSYSTICK_MODE</armgcc.preprocessingassembler.general.AssemblerFlags>
@@ -425,10 +454,15 @@
       <Value>../src/ASF/sam0/drivers/sercom/usart</Value>
       <Value>../src/ASF/sam0/utils/stdio/stdio_serial</Value>
       <Value>../src/ASF/common/services/serial</Value>
-      <Value>../src/ASF/sam0/drivers/nvm</Value>
       <Value>../src/ASF/common2/services/delay</Value>
       <Value>../src/ASF/common2/services/delay/sam0</Value>
       <Value>../src/ASF/common/services/ioport</Value>
+      <Value>../src/ASF/thirdparty/wireless/addons/sio2host/uart</Value>
+      <Value>../src/ASF/sam0/drivers/nvm</Value>
+      <Value>../src/ASF/sam0/drivers/dsu</Value>
+      <Value>../src/ASF/sam0/drivers/dsu/crc32</Value>
+      <Value>../src/ASF/sam0/drivers/pac</Value>
+      <Value>../src/ASF/sam0/drivers/pac/pac_sam_d_r_h</Value>
     </ListValues>
   </armgcc.preprocessingassembler.general.IncludePaths>
 </ArmGcc>
@@ -484,15 +518,21 @@
       <Value>../src/ASF/sam0/drivers/sercom/usart</Value>
       <Value>../src/ASF/sam0/utils/stdio/stdio_serial</Value>
       <Value>../src/ASF/common/services/serial</Value>
-      <Value>../src/ASF/sam0/drivers/nvm</Value>
       <Value>../src/ASF/common2/services/delay</Value>
       <Value>../src/ASF/common2/services/delay/sam0</Value>
       <Value>../src/ASF/common/services/ioport</Value>
+      <Value>../src/ASF/thirdparty/wireless/addons/sio2host/uart</Value>
+      <Value>../src/ASF/sam0/drivers/nvm</Value>
+      <Value>../src/ASF/sam0/drivers/dsu</Value>
+      <Value>../src/ASF/sam0/drivers/dsu/crc32</Value>
+      <Value>../src/ASF/sam0/drivers/pac</Value>
+      <Value>../src/ASF/sam0/drivers/pac/pac_sam_d_r_h</Value>
     </ListValues>
   </armgcc.compiler.directories.IncludePaths>
   <armgcc.compiler.optimization.level>Optimize for size (-Os)</armgcc.compiler.optimization.level>
   <armgcc.compiler.optimization.OtherFlags>-fdata-sections</armgcc.compiler.optimization.OtherFlags>
   <armgcc.compiler.optimization.PrepareFunctionsForGarbageCollection>True</armgcc.compiler.optimization.PrepareFunctionsForGarbageCollection>
+  <armgcc.compiler.optimization.DebugLevel>Maximum (-g3)</armgcc.compiler.optimization.DebugLevel>
   <armgcc.compiler.warnings.AllWarnings>True</armgcc.compiler.warnings.AllWarnings>
   <armgcc.compiler.miscellaneous.OtherFlags>-pipe -fno-strict-aliasing -Wall -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -std=gnu99 -ffunction-sections -fdata-sections -Wchar-subscripts -Wcomment -Wformat=2 -Wimplicit-int -Wmain -Wparentheses -Wsequence-point -Wreturn-type -Wswitch -Wtrigraphs -Wunused -Wuninitialized -Wunknown-pragmas -Wfloat-equal -Wundef -Wshadow -Wbad-function-cast -Wwrite-strings -Wsign-compare -Waggregate-return  -Wmissing-declarations -Wformat -Wmissing-format-attribute -Wno-deprecated-declarations -Wpacked -Wredundant-decls -Wnested-externs -Wlong-long -Wunreachable-code -Wcast-align --param max-inline-insns-single=500</armgcc.compiler.miscellaneous.OtherFlags>
   <armgcc.linker.general.UseNewlibNano>True</armgcc.linker.general.UseNewlibNano>
@@ -542,10 +582,15 @@
       <Value>../src/ASF/sam0/drivers/sercom/usart</Value>
       <Value>../src/ASF/sam0/utils/stdio/stdio_serial</Value>
       <Value>../src/ASF/common/services/serial</Value>
-      <Value>../src/ASF/sam0/drivers/nvm</Value>
       <Value>../src/ASF/common2/services/delay</Value>
       <Value>../src/ASF/common2/services/delay/sam0</Value>
       <Value>../src/ASF/common/services/ioport</Value>
+      <Value>../src/ASF/thirdparty/wireless/addons/sio2host/uart</Value>
+      <Value>../src/ASF/sam0/drivers/nvm</Value>
+      <Value>../src/ASF/sam0/drivers/dsu</Value>
+      <Value>../src/ASF/sam0/drivers/dsu/crc32</Value>
+      <Value>../src/ASF/sam0/drivers/pac</Value>
+      <Value>../src/ASF/sam0/drivers/pac/pac_sam_d_r_h</Value>
     </ListValues>
   </armgcc.assembler.general.IncludePaths>
   <armgcc.assembler.debugging.DebugLevel>Default (-g)</armgcc.assembler.debugging.DebugLevel>
@@ -582,10 +627,15 @@
       <Value>../src/ASF/sam0/drivers/sercom/usart</Value>
       <Value>../src/ASF/sam0/utils/stdio/stdio_serial</Value>
       <Value>../src/ASF/common/services/serial</Value>
-      <Value>../src/ASF/sam0/drivers/nvm</Value>
       <Value>../src/ASF/common2/services/delay</Value>
       <Value>../src/ASF/common2/services/delay/sam0</Value>
       <Value>../src/ASF/common/services/ioport</Value>
+      <Value>../src/ASF/thirdparty/wireless/addons/sio2host/uart</Value>
+      <Value>../src/ASF/sam0/drivers/nvm</Value>
+      <Value>../src/ASF/sam0/drivers/dsu</Value>
+      <Value>../src/ASF/sam0/drivers/dsu/crc32</Value>
+      <Value>../src/ASF/sam0/drivers/pac</Value>
+      <Value>../src/ASF/sam0/drivers/pac/pac_sam_d_r_h</Value>
     </ListValues>
   </armgcc.preprocessingassembler.general.IncludePaths>
   <armgcc.preprocessingassembler.debugging.DebugLevel>Default (-Wa,-g)</armgcc.preprocessingassembler.debugging.DebugLevel>
@@ -620,8 +670,12 @@
     <Folder Include="src\ASF\common\utils\interrupt\" />
     <Folder Include="src\ASF\sam0\" />
     <Folder Include="src\ASF\sam0\drivers\" />
+    <Folder Include="src\ASF\sam0\drivers\dsu\" />
+    <Folder Include="src\ASF\sam0\drivers\dsu\crc32\" />
     <Folder Include="src\ASF\sam0\drivers\nvm\" />
     <Folder Include="src\ASF\sam0\drivers\nvm\quick_start_basic\" />
+    <Folder Include="src\ASF\sam0\drivers\pac\" />
+    <Folder Include="src\ASF\sam0\drivers\pac\pac_sam_d_r_h\" />
     <Folder Include="src\ASF\sam0\drivers\port\" />
     <Folder Include="src\ASF\sam0\drivers\port\quick_start\" />
     <Folder Include="src\ASF\sam0\drivers\sercom\" />
@@ -682,6 +736,10 @@
     <Folder Include="src\ASF\thirdparty\CMSIS\Include\" />
     <Folder Include="src\ASF\thirdparty\CMSIS\Lib\" />
     <Folder Include="src\ASF\thirdparty\CMSIS\Lib\GCC\" />
+    <Folder Include="src\ASF\thirdparty\wireless\" />
+    <Folder Include="src\ASF\thirdparty\wireless\addons\" />
+    <Folder Include="src\ASF\thirdparty\wireless\addons\sio2host\" />
+    <Folder Include="src\ASF\thirdparty\wireless\addons\sio2host\uart\" />
     <Folder Include="src\config\" />
   </ItemGroup>
   <ItemGroup>
@@ -715,6 +773,12 @@
     <None Include="src\ASF\common\services\ioport\ioport.h">
       <SubType>compile</SubType>
     </None>
+    <Compile Include="src\ASF\sam0\drivers\dsu\crc32\crc32.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <None Include="src\ASF\sam0\drivers\dsu\crc32\crc32.h">
+      <SubType>compile</SubType>
+    </None>
     <Compile Include="src\ASF\sam0\drivers\nvm\nvm.c">
       <SubType>compile</SubType>
     </Compile>
@@ -724,6 +788,12 @@
     <None Include="src\ASF\sam0\drivers\nvm\nvm.h">
       <SubType>compile</SubType>
     </None>
+    <None Include="src\ASF\sam0\drivers\pac\pac.h">
+      <SubType>compile</SubType>
+    </None>
+    <Compile Include="src\ASF\sam0\drivers\pac\pac_sam_d_r_h\pac.c">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\ASF\sam0\drivers\sercom\sercom.c">
       <SubType>compile</SubType>
     </Compile>
@@ -1300,6 +1370,15 @@
     <Compile Include="src\ASF\sam0\utils\syscalls\gcc\syscalls.c">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\ASF\thirdparty\wireless\addons\sio2host\uart\sio2host.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <None Include="src\ASF\thirdparty\wireless\addons\sio2host\uart\sio2host.h">
+      <SubType>compile</SubType>
+    </None>
+    <None Include="src\config\conf_sio2host.h">
+      <SubType>compile</SubType>
+    </None>
     <Compile Include="src\main.c">
       <SubType>compile</SubType>
     </Compile>

@@ -52,6 +52,9 @@
  * running the ASF driver selector tool. Any changes will be discarded.
  */
 
+// From module: CRC32 - 32-bit cyclic redundancy check
+#include <crc32.h>
+
 // From module: Common SAM0 compiler driver
 #include <compiler.h>
 #include <status_codes.h>
@@ -76,6 +79,9 @@
 
 // From module: NVM - Non-Volatile Memory
 #include <nvm.h>
+
+// From module: PAC - Peripheral Access Controller
+#include <pac.h>
 
 // From module: PORT - GPIO Pin Control
 #include <port.h>

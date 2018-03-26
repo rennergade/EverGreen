@@ -325,7 +325,7 @@
       </framework-data>
     </AsfFrameworkConfig>
     <avrtool>com.atmel.avrdbg.tool.edbg</avrtool>
-    <avrtoolserialnumber>ATML2449020200004334</avrtoolserialnumber>
+    <avrtoolserialnumber>ATML2449020200009424</avrtoolserialnumber>
     <avrdeviceexpectedsignature>0x10010305</avrdeviceexpectedsignature>
     <avrtoolinterface>SWD</avrtoolinterface>
     <com_atmel_avrdbg_tool_edbg>
@@ -336,7 +336,7 @@
         <InterfaceName>SWD</InterfaceName>
       </ToolOptions>
       <ToolType>com.atmel.avrdbg.tool.edbg</ToolType>
-      <ToolNumber>ATML2449020200004334</ToolNumber>
+      <ToolNumber>ATML2449020200009424</ToolNumber>
       <ToolName>EDBG MSD</ToolName>
     </com_atmel_avrdbg_tool_edbg>
     <avrtoolinterfaceclock>2000000</avrtoolinterfaceclock>
@@ -344,170 +344,170 @@
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <ToolchainSettings>
       <ArmGcc>
-  <armgcc.common.outputfiles.hex>True</armgcc.common.outputfiles.hex>
-  <armgcc.common.outputfiles.lss>True</armgcc.common.outputfiles.lss>
-  <armgcc.common.outputfiles.eep>True</armgcc.common.outputfiles.eep>
-  <armgcc.common.outputfiles.bin>True</armgcc.common.outputfiles.bin>
-  <armgcc.common.outputfiles.srec>True</armgcc.common.outputfiles.srec>
-  <armgcc.compiler.symbols.DefSymbols>
-    <ListValues>
-      <Value>NDEBUG</Value>
-      <Value>BOARD=USER_BOARD</Value>
-      <Value>ARM_MATH_CM0PLUS=true</Value>
-      <Value>SYSTICK_MODE</Value>
-      <Value>EXTINT_CALLBACK_MODE=true</Value>
-      <Value>SPI_CALLBACK_MODE=true</Value>
-      <Value>USART_CALLBACK_MODE=true</Value>
-      <Value>WDT_CALLBACK_MODE=true</Value>
-    </ListValues>
-  </armgcc.compiler.symbols.DefSymbols>
-  <armgcc.compiler.directories.IncludePaths>
-    <ListValues>
-      <Value>../src/ASF/common/boards</Value>
-      <Value>../src/ASF/sam0/utils</Value>
-      <Value>../src/ASF/sam0/utils/header_files</Value>
-      <Value>../src/ASF/sam0/utils/preprocessor</Value>
-      <Value>../src/ASF/thirdparty/CMSIS/Include</Value>
-      <Value>../src/ASF/thirdparty/CMSIS/Lib/GCC</Value>
-      <Value>../src/ASF/common/utils</Value>
-      <Value>../src/ASF/sam0/utils/cmsis/samd21/include</Value>
-      <Value>../src/ASF/sam0/utils/cmsis/samd21/source</Value>
-      <Value>../src/ASF/sam0/drivers/system</Value>
-      <Value>../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1</Value>
-      <Value>../src/ASF/sam0/drivers/system/clock</Value>
-      <Value>../src/ASF/sam0/drivers/system/interrupt</Value>
-      <Value>../src/ASF/sam0/drivers/system/interrupt/system_interrupt_samd21</Value>
-      <Value>../src/ASF/sam0/drivers/system/pinmux</Value>
-      <Value>../src/ASF/sam0/drivers/system/power</Value>
-      <Value>../src/ASF/sam0/drivers/system/power/power_sam_d_r_h</Value>
-      <Value>../src/ASF/sam0/drivers/system/reset</Value>
-      <Value>../src/ASF/sam0/drivers/system/reset/reset_sam_d_r_h</Value>
-      <Value>../src/ASF/common2/boards/user_board</Value>
-      <Value>../src</Value>
-      <Value>../src/config</Value>
-      <Value>../src/ASF/common/services/crc32</Value>
-      <Value>../src/ASF/sam0/drivers/nvm</Value>
-      <Value>../src/ASF/sam0/drivers/port</Value>
-      <Value>../src/ASF/sam0/utils/stdio/stdio_serial</Value>
-      <Value>../src/ASF/common/components/wifi/winc1500</Value>
-      <Value>../src/ASF/common/services/serial</Value>
-      <Value>../src/ASF/common2/components/memory/serial_flash/at25dfx</Value>
-      <Value>../src/ASF/common2/components/memory/serial_flash/at25dfx/hal/spi_polled</Value>
-      <Value>../src/ASF/common2/services/delay</Value>
-      <Value>../src/ASF/common2/services/delay/sam0</Value>
-      <Value>../src/ASF/sam0/drivers/extint</Value>
-      <Value>../src/ASF/sam0/drivers/extint/extint_sam_d_r_h</Value>
-      <Value>../src/ASF/sam0/drivers/sercom</Value>
-      <Value>../src/ASF/sam0/drivers/sercom/spi</Value>
-      <Value>../src/ASF/sam0/drivers/sercom/usart</Value>
-      <Value>../src/ASF/sam0/drivers/wdt</Value>
-    </ListValues>
-  </armgcc.compiler.directories.IncludePaths>
-  <armgcc.compiler.optimization.level>Optimize for size (-Os)</armgcc.compiler.optimization.level>
-  <armgcc.compiler.optimization.OtherFlags>-fdata-sections</armgcc.compiler.optimization.OtherFlags>
-  <armgcc.compiler.optimization.PrepareFunctionsForGarbageCollection>True</armgcc.compiler.optimization.PrepareFunctionsForGarbageCollection>
-  <armgcc.compiler.warnings.AllWarnings>True</armgcc.compiler.warnings.AllWarnings>
-  <armgcc.compiler.miscellaneous.OtherFlags>-pipe -fno-strict-aliasing -Wall -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -std=gnu99 -ffunction-sections -fdata-sections -Wchar-subscripts -Wcomment -Wformat=2 -Wimplicit-int -Wmain -Wparentheses -Wsequence-point -Wreturn-type -Wswitch -Wtrigraphs -Wunused -Wuninitialized -Wunknown-pragmas -Wfloat-equal -Wundef -Wshadow -Wbad-function-cast -Wwrite-strings -Wsign-compare -Waggregate-return  -Wmissing-declarations -Wformat -Wmissing-format-attribute -Wno-deprecated-declarations -Wpacked -Wredundant-decls -Wnested-externs -Wlong-long -Wunreachable-code -Wcast-align --param max-inline-insns-single=500</armgcc.compiler.miscellaneous.OtherFlags>
-  <armgcc.linker.general.UseNewlibNano>True</armgcc.linker.general.UseNewlibNano>
-  <armgcc.linker.libraries.Libraries>
-    <ListValues>
-      <Value>libarm_cortexM0l_math</Value>
-      <Value>libm</Value>
-    </ListValues>
-  </armgcc.linker.libraries.Libraries>
-  <armgcc.linker.libraries.LibrarySearchPaths>
-    <ListValues>
-      <Value>../src/ASF/thirdparty/CMSIS/Lib/GCC</Value>
-    </ListValues>
-  </armgcc.linker.libraries.LibrarySearchPaths>
-  <armgcc.linker.optimization.GarbageCollectUnusedSections>True</armgcc.linker.optimization.GarbageCollectUnusedSections>
-  <armgcc.linker.miscellaneous.LinkerFlags>-Wl,--entry=Reset_Handler -Wl,--cref -mthumb -T../src/ASF/sam0/utils/linker_scripts/samd21/gcc/samd21g18a_flash.ld</armgcc.linker.miscellaneous.LinkerFlags>
-  <armgcc.assembler.general.IncludePaths>
-    <ListValues>
-      <Value>../src/ASF/common/boards</Value>
-      <Value>../src/ASF/sam0/utils</Value>
-      <Value>../src/ASF/sam0/utils/header_files</Value>
-      <Value>../src/ASF/sam0/utils/preprocessor</Value>
-      <Value>../src/ASF/thirdparty/CMSIS/Include</Value>
-      <Value>../src/ASF/thirdparty/CMSIS/Lib/GCC</Value>
-      <Value>../src/ASF/common/utils</Value>
-      <Value>../src/ASF/sam0/utils/cmsis/samd21/include</Value>
-      <Value>../src/ASF/sam0/utils/cmsis/samd21/source</Value>
-      <Value>../src/ASF/sam0/drivers/system</Value>
-      <Value>../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1</Value>
-      <Value>../src/ASF/sam0/drivers/system/clock</Value>
-      <Value>../src/ASF/sam0/drivers/system/interrupt</Value>
-      <Value>../src/ASF/sam0/drivers/system/interrupt/system_interrupt_samd21</Value>
-      <Value>../src/ASF/sam0/drivers/system/pinmux</Value>
-      <Value>../src/ASF/sam0/drivers/system/power</Value>
-      <Value>../src/ASF/sam0/drivers/system/power/power_sam_d_r_h</Value>
-      <Value>../src/ASF/sam0/drivers/system/reset</Value>
-      <Value>../src/ASF/sam0/drivers/system/reset/reset_sam_d_r_h</Value>
-      <Value>../src/ASF/common2/boards/user_board</Value>
-      <Value>../src</Value>
-      <Value>../src/config</Value>
-      <Value>../src/ASF/common/services/crc32</Value>
-      <Value>../src/ASF/sam0/drivers/nvm</Value>
-      <Value>../src/ASF/sam0/drivers/port</Value>
-      <Value>../src/ASF/sam0/utils/stdio/stdio_serial</Value>
-      <Value>../src/ASF/common/components/wifi/winc1500</Value>
-      <Value>../src/ASF/common/services/serial</Value>
-      <Value>../src/ASF/common2/components/memory/serial_flash/at25dfx</Value>
-      <Value>../src/ASF/common2/components/memory/serial_flash/at25dfx/hal/spi_polled</Value>
-      <Value>../src/ASF/common2/services/delay</Value>
-      <Value>../src/ASF/common2/services/delay/sam0</Value>
-      <Value>../src/ASF/sam0/drivers/extint</Value>
-      <Value>../src/ASF/sam0/drivers/extint/extint_sam_d_r_h</Value>
-      <Value>../src/ASF/sam0/drivers/sercom</Value>
-      <Value>../src/ASF/sam0/drivers/sercom/spi</Value>
-      <Value>../src/ASF/sam0/drivers/sercom/usart</Value>
-      <Value>../src/ASF/sam0/drivers/wdt</Value>
-    </ListValues>
-  </armgcc.assembler.general.IncludePaths>
-  <armgcc.preprocessingassembler.general.AssemblerFlags>-DARM_MATH_CM0PLUS=true -DBOARD=USER_BOARD -DSYSTICK_MODE -DEXTINT_CALLBACK_MODE=true -DSPI_CALLBACK_MODE=true -DUSART_CALLBACK_MODE=true -DWDT_CALLBACK_MODE=true</armgcc.preprocessingassembler.general.AssemblerFlags>
-  <armgcc.preprocessingassembler.general.IncludePaths>
-    <ListValues>
-      <Value>../src/ASF/common/boards</Value>
-      <Value>../src/ASF/sam0/utils</Value>
-      <Value>../src/ASF/sam0/utils/header_files</Value>
-      <Value>../src/ASF/sam0/utils/preprocessor</Value>
-      <Value>../src/ASF/thirdparty/CMSIS/Include</Value>
-      <Value>../src/ASF/thirdparty/CMSIS/Lib/GCC</Value>
-      <Value>../src/ASF/common/utils</Value>
-      <Value>../src/ASF/sam0/utils/cmsis/samd21/include</Value>
-      <Value>../src/ASF/sam0/utils/cmsis/samd21/source</Value>
-      <Value>../src/ASF/sam0/drivers/system</Value>
-      <Value>../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1</Value>
-      <Value>../src/ASF/sam0/drivers/system/clock</Value>
-      <Value>../src/ASF/sam0/drivers/system/interrupt</Value>
-      <Value>../src/ASF/sam0/drivers/system/interrupt/system_interrupt_samd21</Value>
-      <Value>../src/ASF/sam0/drivers/system/pinmux</Value>
-      <Value>../src/ASF/sam0/drivers/system/power</Value>
-      <Value>../src/ASF/sam0/drivers/system/power/power_sam_d_r_h</Value>
-      <Value>../src/ASF/sam0/drivers/system/reset</Value>
-      <Value>../src/ASF/sam0/drivers/system/reset/reset_sam_d_r_h</Value>
-      <Value>../src/ASF/common2/boards/user_board</Value>
-      <Value>../src</Value>
-      <Value>../src/config</Value>
-      <Value>../src/ASF/common/services/crc32</Value>
-      <Value>../src/ASF/sam0/drivers/nvm</Value>
-      <Value>../src/ASF/sam0/drivers/port</Value>
-      <Value>../src/ASF/sam0/utils/stdio/stdio_serial</Value>
-      <Value>../src/ASF/common/components/wifi/winc1500</Value>
-      <Value>../src/ASF/common/services/serial</Value>
-      <Value>../src/ASF/common2/components/memory/serial_flash/at25dfx</Value>
-      <Value>../src/ASF/common2/components/memory/serial_flash/at25dfx/hal/spi_polled</Value>
-      <Value>../src/ASF/common2/services/delay</Value>
-      <Value>../src/ASF/common2/services/delay/sam0</Value>
-      <Value>../src/ASF/sam0/drivers/extint</Value>
-      <Value>../src/ASF/sam0/drivers/extint/extint_sam_d_r_h</Value>
-      <Value>../src/ASF/sam0/drivers/sercom</Value>
-      <Value>../src/ASF/sam0/drivers/sercom/spi</Value>
-      <Value>../src/ASF/sam0/drivers/sercom/usart</Value>
-      <Value>../src/ASF/sam0/drivers/wdt</Value>
-    </ListValues>
-  </armgcc.preprocessingassembler.general.IncludePaths>
-</ArmGcc>
+        <armgcc.common.outputfiles.hex>True</armgcc.common.outputfiles.hex>
+        <armgcc.common.outputfiles.lss>True</armgcc.common.outputfiles.lss>
+        <armgcc.common.outputfiles.eep>True</armgcc.common.outputfiles.eep>
+        <armgcc.common.outputfiles.bin>True</armgcc.common.outputfiles.bin>
+        <armgcc.common.outputfiles.srec>True</armgcc.common.outputfiles.srec>
+        <armgcc.compiler.symbols.DefSymbols>
+          <ListValues>
+            <Value>NDEBUG</Value>
+            <Value>BOARD=USER_BOARD</Value>
+            <Value>ARM_MATH_CM0PLUS=true</Value>
+            <Value>SYSTICK_MODE</Value>
+            <Value>EXTINT_CALLBACK_MODE=true</Value>
+            <Value>SPI_CALLBACK_MODE=true</Value>
+            <Value>USART_CALLBACK_MODE=true</Value>
+            <Value>WDT_CALLBACK_MODE=true</Value>
+          </ListValues>
+        </armgcc.compiler.symbols.DefSymbols>
+        <armgcc.compiler.directories.IncludePaths>
+          <ListValues>
+            <Value>../src/ASF/common/boards</Value>
+            <Value>../src/ASF/sam0/utils</Value>
+            <Value>../src/ASF/sam0/utils/header_files</Value>
+            <Value>../src/ASF/sam0/utils/preprocessor</Value>
+            <Value>../src/ASF/thirdparty/CMSIS/Include</Value>
+            <Value>../src/ASF/thirdparty/CMSIS/Lib/GCC</Value>
+            <Value>../src/ASF/common/utils</Value>
+            <Value>../src/ASF/sam0/utils/cmsis/samd21/include</Value>
+            <Value>../src/ASF/sam0/utils/cmsis/samd21/source</Value>
+            <Value>../src/ASF/sam0/drivers/system</Value>
+            <Value>../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1</Value>
+            <Value>../src/ASF/sam0/drivers/system/clock</Value>
+            <Value>../src/ASF/sam0/drivers/system/interrupt</Value>
+            <Value>../src/ASF/sam0/drivers/system/interrupt/system_interrupt_samd21</Value>
+            <Value>../src/ASF/sam0/drivers/system/pinmux</Value>
+            <Value>../src/ASF/sam0/drivers/system/power</Value>
+            <Value>../src/ASF/sam0/drivers/system/power/power_sam_d_r_h</Value>
+            <Value>../src/ASF/sam0/drivers/system/reset</Value>
+            <Value>../src/ASF/sam0/drivers/system/reset/reset_sam_d_r_h</Value>
+            <Value>../src/ASF/common2/boards/user_board</Value>
+            <Value>../src</Value>
+            <Value>../src/config</Value>
+            <Value>../src/ASF/common/services/crc32</Value>
+            <Value>../src/ASF/sam0/drivers/nvm</Value>
+            <Value>../src/ASF/sam0/drivers/port</Value>
+            <Value>../src/ASF/sam0/utils/stdio/stdio_serial</Value>
+            <Value>../src/ASF/common/components/wifi/winc1500</Value>
+            <Value>../src/ASF/common/services/serial</Value>
+            <Value>../src/ASF/common2/components/memory/serial_flash/at25dfx</Value>
+            <Value>../src/ASF/common2/components/memory/serial_flash/at25dfx/hal/spi_polled</Value>
+            <Value>../src/ASF/common2/services/delay</Value>
+            <Value>../src/ASF/common2/services/delay/sam0</Value>
+            <Value>../src/ASF/sam0/drivers/extint</Value>
+            <Value>../src/ASF/sam0/drivers/extint/extint_sam_d_r_h</Value>
+            <Value>../src/ASF/sam0/drivers/sercom</Value>
+            <Value>../src/ASF/sam0/drivers/sercom/spi</Value>
+            <Value>../src/ASF/sam0/drivers/sercom/usart</Value>
+            <Value>../src/ASF/sam0/drivers/wdt</Value>
+          </ListValues>
+        </armgcc.compiler.directories.IncludePaths>
+        <armgcc.compiler.optimization.level>Optimize for size (-Os)</armgcc.compiler.optimization.level>
+        <armgcc.compiler.optimization.OtherFlags>-fdata-sections</armgcc.compiler.optimization.OtherFlags>
+        <armgcc.compiler.optimization.PrepareFunctionsForGarbageCollection>True</armgcc.compiler.optimization.PrepareFunctionsForGarbageCollection>
+        <armgcc.compiler.warnings.AllWarnings>True</armgcc.compiler.warnings.AllWarnings>
+        <armgcc.compiler.miscellaneous.OtherFlags>-pipe -fno-strict-aliasing -Wall -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -std=gnu99 -ffunction-sections -fdata-sections -Wchar-subscripts -Wcomment -Wformat=2 -Wimplicit-int -Wmain -Wparentheses -Wsequence-point -Wreturn-type -Wswitch -Wtrigraphs -Wunused -Wuninitialized -Wunknown-pragmas -Wfloat-equal -Wundef -Wshadow -Wbad-function-cast -Wwrite-strings -Wsign-compare -Waggregate-return  -Wmissing-declarations -Wformat -Wmissing-format-attribute -Wno-deprecated-declarations -Wpacked -Wredundant-decls -Wnested-externs -Wlong-long -Wunreachable-code -Wcast-align --param max-inline-insns-single=500</armgcc.compiler.miscellaneous.OtherFlags>
+        <armgcc.linker.general.UseNewlibNano>True</armgcc.linker.general.UseNewlibNano>
+        <armgcc.linker.libraries.Libraries>
+          <ListValues>
+            <Value>libarm_cortexM0l_math</Value>
+            <Value>libm</Value>
+          </ListValues>
+        </armgcc.linker.libraries.Libraries>
+        <armgcc.linker.libraries.LibrarySearchPaths>
+          <ListValues>
+            <Value>../src/ASF/thirdparty/CMSIS/Lib/GCC</Value>
+          </ListValues>
+        </armgcc.linker.libraries.LibrarySearchPaths>
+        <armgcc.linker.optimization.GarbageCollectUnusedSections>True</armgcc.linker.optimization.GarbageCollectUnusedSections>
+        <armgcc.linker.miscellaneous.LinkerFlags>-Wl,--entry=Reset_Handler -Wl,--cref -mthumb -T../src/ASF/sam0/utils/linker_scripts/samd21/gcc/samd21g18a_flash.ld</armgcc.linker.miscellaneous.LinkerFlags>
+        <armgcc.assembler.general.IncludePaths>
+          <ListValues>
+            <Value>../src/ASF/common/boards</Value>
+            <Value>../src/ASF/sam0/utils</Value>
+            <Value>../src/ASF/sam0/utils/header_files</Value>
+            <Value>../src/ASF/sam0/utils/preprocessor</Value>
+            <Value>../src/ASF/thirdparty/CMSIS/Include</Value>
+            <Value>../src/ASF/thirdparty/CMSIS/Lib/GCC</Value>
+            <Value>../src/ASF/common/utils</Value>
+            <Value>../src/ASF/sam0/utils/cmsis/samd21/include</Value>
+            <Value>../src/ASF/sam0/utils/cmsis/samd21/source</Value>
+            <Value>../src/ASF/sam0/drivers/system</Value>
+            <Value>../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1</Value>
+            <Value>../src/ASF/sam0/drivers/system/clock</Value>
+            <Value>../src/ASF/sam0/drivers/system/interrupt</Value>
+            <Value>../src/ASF/sam0/drivers/system/interrupt/system_interrupt_samd21</Value>
+            <Value>../src/ASF/sam0/drivers/system/pinmux</Value>
+            <Value>../src/ASF/sam0/drivers/system/power</Value>
+            <Value>../src/ASF/sam0/drivers/system/power/power_sam_d_r_h</Value>
+            <Value>../src/ASF/sam0/drivers/system/reset</Value>
+            <Value>../src/ASF/sam0/drivers/system/reset/reset_sam_d_r_h</Value>
+            <Value>../src/ASF/common2/boards/user_board</Value>
+            <Value>../src</Value>
+            <Value>../src/config</Value>
+            <Value>../src/ASF/common/services/crc32</Value>
+            <Value>../src/ASF/sam0/drivers/nvm</Value>
+            <Value>../src/ASF/sam0/drivers/port</Value>
+            <Value>../src/ASF/sam0/utils/stdio/stdio_serial</Value>
+            <Value>../src/ASF/common/components/wifi/winc1500</Value>
+            <Value>../src/ASF/common/services/serial</Value>
+            <Value>../src/ASF/common2/components/memory/serial_flash/at25dfx</Value>
+            <Value>../src/ASF/common2/components/memory/serial_flash/at25dfx/hal/spi_polled</Value>
+            <Value>../src/ASF/common2/services/delay</Value>
+            <Value>../src/ASF/common2/services/delay/sam0</Value>
+            <Value>../src/ASF/sam0/drivers/extint</Value>
+            <Value>../src/ASF/sam0/drivers/extint/extint_sam_d_r_h</Value>
+            <Value>../src/ASF/sam0/drivers/sercom</Value>
+            <Value>../src/ASF/sam0/drivers/sercom/spi</Value>
+            <Value>../src/ASF/sam0/drivers/sercom/usart</Value>
+            <Value>../src/ASF/sam0/drivers/wdt</Value>
+          </ListValues>
+        </armgcc.assembler.general.IncludePaths>
+        <armgcc.preprocessingassembler.general.AssemblerFlags>-DARM_MATH_CM0PLUS=true -DBOARD=USER_BOARD -DSYSTICK_MODE -DEXTINT_CALLBACK_MODE=true -DSPI_CALLBACK_MODE=true -DUSART_CALLBACK_MODE=true -DWDT_CALLBACK_MODE=true</armgcc.preprocessingassembler.general.AssemblerFlags>
+        <armgcc.preprocessingassembler.general.IncludePaths>
+          <ListValues>
+            <Value>../src/ASF/common/boards</Value>
+            <Value>../src/ASF/sam0/utils</Value>
+            <Value>../src/ASF/sam0/utils/header_files</Value>
+            <Value>../src/ASF/sam0/utils/preprocessor</Value>
+            <Value>../src/ASF/thirdparty/CMSIS/Include</Value>
+            <Value>../src/ASF/thirdparty/CMSIS/Lib/GCC</Value>
+            <Value>../src/ASF/common/utils</Value>
+            <Value>../src/ASF/sam0/utils/cmsis/samd21/include</Value>
+            <Value>../src/ASF/sam0/utils/cmsis/samd21/source</Value>
+            <Value>../src/ASF/sam0/drivers/system</Value>
+            <Value>../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1</Value>
+            <Value>../src/ASF/sam0/drivers/system/clock</Value>
+            <Value>../src/ASF/sam0/drivers/system/interrupt</Value>
+            <Value>../src/ASF/sam0/drivers/system/interrupt/system_interrupt_samd21</Value>
+            <Value>../src/ASF/sam0/drivers/system/pinmux</Value>
+            <Value>../src/ASF/sam0/drivers/system/power</Value>
+            <Value>../src/ASF/sam0/drivers/system/power/power_sam_d_r_h</Value>
+            <Value>../src/ASF/sam0/drivers/system/reset</Value>
+            <Value>../src/ASF/sam0/drivers/system/reset/reset_sam_d_r_h</Value>
+            <Value>../src/ASF/common2/boards/user_board</Value>
+            <Value>../src</Value>
+            <Value>../src/config</Value>
+            <Value>../src/ASF/common/services/crc32</Value>
+            <Value>../src/ASF/sam0/drivers/nvm</Value>
+            <Value>../src/ASF/sam0/drivers/port</Value>
+            <Value>../src/ASF/sam0/utils/stdio/stdio_serial</Value>
+            <Value>../src/ASF/common/components/wifi/winc1500</Value>
+            <Value>../src/ASF/common/services/serial</Value>
+            <Value>../src/ASF/common2/components/memory/serial_flash/at25dfx</Value>
+            <Value>../src/ASF/common2/components/memory/serial_flash/at25dfx/hal/spi_polled</Value>
+            <Value>../src/ASF/common2/services/delay</Value>
+            <Value>../src/ASF/common2/services/delay/sam0</Value>
+            <Value>../src/ASF/sam0/drivers/extint</Value>
+            <Value>../src/ASF/sam0/drivers/extint/extint_sam_d_r_h</Value>
+            <Value>../src/ASF/sam0/drivers/sercom</Value>
+            <Value>../src/ASF/sam0/drivers/sercom/spi</Value>
+            <Value>../src/ASF/sam0/drivers/sercom/usart</Value>
+            <Value>../src/ASF/sam0/drivers/wdt</Value>
+          </ListValues>
+        </armgcc.preprocessingassembler.general.IncludePaths>
+      </ArmGcc>
     </ToolchainSettings>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
@@ -572,9 +572,10 @@
       <Value>../src/ASF/sam0/drivers/wdt</Value>
     </ListValues>
   </armgcc.compiler.directories.IncludePaths>
-  <armgcc.compiler.optimization.level>Optimize (-O1)</armgcc.compiler.optimization.level>
+  <armgcc.compiler.optimization.level>Optimize for size (-Os)</armgcc.compiler.optimization.level>
   <armgcc.compiler.optimization.OtherFlags>-fdata-sections</armgcc.compiler.optimization.OtherFlags>
   <armgcc.compiler.optimization.PrepareFunctionsForGarbageCollection>True</armgcc.compiler.optimization.PrepareFunctionsForGarbageCollection>
+  <armgcc.compiler.optimization.DebugLevel>Maximum (-g3)</armgcc.compiler.optimization.DebugLevel>
   <armgcc.compiler.warnings.AllWarnings>True</armgcc.compiler.warnings.AllWarnings>
   <armgcc.compiler.miscellaneous.OtherFlags>-pipe -fno-strict-aliasing -Wall -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -std=gnu99 -ffunction-sections -fdata-sections -Wchar-subscripts -Wcomment -Wformat=2 -Wimplicit-int -Wmain -Wparentheses -Wsequence-point -Wreturn-type -Wswitch -Wtrigraphs -Wunused -Wuninitialized -Wunknown-pragmas -Wfloat-equal -Wundef -Wshadow -Wbad-function-cast -Wwrite-strings -Wsign-compare -Waggregate-return  -Wmissing-declarations -Wformat -Wmissing-format-attribute -Wno-deprecated-declarations -Wpacked -Wredundant-decls -Wnested-externs -Wlong-long -Wunreachable-code -Wcast-align --param max-inline-insns-single=500</armgcc.compiler.miscellaneous.OtherFlags>
   <armgcc.linker.general.UseNewlibNano>True</armgcc.linker.general.UseNewlibNano>
@@ -591,7 +592,7 @@
   </armgcc.linker.libraries.LibrarySearchPaths>
   <armgcc.linker.optimization.GarbageCollectUnusedSections>True</armgcc.linker.optimization.GarbageCollectUnusedSections>
   <armgcc.linker.memorysettings.ExternalRAM />
-  <armgcc.linker.miscellaneous.LinkerFlags>-Wl,--entry=Reset_Handler -Wl,--cref -mthumb -T../src/ASF/sam0/utils/linker_scripts/samd21/gcc/samd21g18a_flash.ld</armgcc.linker.miscellaneous.LinkerFlags>
+  <armgcc.linker.miscellaneous.LinkerFlags>-Wl,--entry=Reset_Handler -Wl,--cref -mthumb -T../src/ASF/sam0/utils/linker_scripts/samd21/gcc/samd21g18a_flash.ld -Wl,--section-start=.text=0x4000</armgcc.linker.miscellaneous.LinkerFlags>
   <armgcc.assembler.general.IncludePaths>
     <ListValues>
       <Value>../src/ASF/common/boards</Value>
