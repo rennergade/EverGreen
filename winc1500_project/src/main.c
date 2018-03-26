@@ -91,9 +91,13 @@ int main() {
 	}
 	
 	printf("--- Welcome to ATWINC 1500 Connection Test ---\r\n");
-	uint8_t mac_address;
-	m2m_wifi_get_mac_address(&mac_address);
-	printf("WINC1500 MAC: %X\r\n", mac_address);
+	printf("main: connecting to WiFi AP %s...\r\n", (char *)MAIN_WLAN_SSID);
+	ret = m2m_wifi_connect((char *)MAIN_WLAN_SSID, sizeof(MAIN_WLAN_SSID), MAIN_WLAN_AUTH, (char *)MAIN_WLAN_PSK, M2M_WIFI_CH_ALL);
+	if(M2M_SUCCESS == ret) {
+		printf("Successfully connected! \r\n");
+	} else {
+		printf("an error occured. \r\n");
+	}
 	return 0;
 	
 }

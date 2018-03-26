@@ -11,8 +11,6 @@ Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "WINC1500_HTTP_DOWNLOADER_EX
 EndProject
 Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "winc1500_project", "winc1500_project\winc1500_project.cproj", "{E3A51A3A-64E8-4029-8C19-EF10892F9EF5}"
 EndProject
-Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "WINC1500_AP_SCAN_EXAMPLE1", "WINC1500_AP_SCAN_EXAMPLE1\WINC1500_AP_SCAN_EXAMPLE1.cproj", "{74BAD127-0EF9-44F5-B64A-E2A1B08577B3}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM = Debug|ARM
@@ -35,10 +33,6 @@ Global
 		{E3A51A3A-64E8-4029-8C19-EF10892F9EF5}.Debug|ARM.Build.0 = Debug|ARM
 		{E3A51A3A-64E8-4029-8C19-EF10892F9EF5}.Release|ARM.ActiveCfg = Release|ARM
 		{E3A51A3A-64E8-4029-8C19-EF10892F9EF5}.Release|ARM.Build.0 = Release|ARM
-		{74BAD127-0EF9-44F5-B64A-E2A1B08577B3}.Debug|ARM.ActiveCfg = Debug|ARM
-		{74BAD127-0EF9-44F5-B64A-E2A1B08577B3}.Debug|ARM.Build.0 = Debug|ARM
-		{74BAD127-0EF9-44F5-B64A-E2A1B08577B3}.Release|ARM.ActiveCfg = Release|ARM
-		{74BAD127-0EF9-44F5-B64A-E2A1B08577B3}.Release|ARM.Build.0 = Release|ARM
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
