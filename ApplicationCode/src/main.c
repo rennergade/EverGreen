@@ -1,14 +1,5 @@
 #include <asf.h>
 
-//uart
-
-#define EDBG_CDC_MODULE              SERCOM4
-#define EDBG_CDC_SERCOM_MUX_SETTING  USART_RX_3_TX_2_XCK_3
-#define EDBG_CDC_SERCOM_PINMUX_PAD0  PINMUX_UNUSED
-#define EDBG_CDC_SERCOM_PINMUX_PAD1  PINMUX_UNUSED
-#define EDBG_CDC_SERCOM_PINMUX_PAD2  PINMUX_PB10D_SERCOM4_PAD2
-#define EDBG_CDC_SERCOM_PINMUX_PAD3  PINMUX_PB11D_SERCOM4_PAD3
-
 struct usart_module usart_instance;
 
 void configure_usart(void)
@@ -16,21 +7,15 @@ void configure_usart(void)
 	struct usart_config config_usart;
 
 	usart_get_config_defaults(&config_usart);
-	config_usart.baudrate = 9600;
-	config_usart.mux_setting = EDBG_CDC_SERCOM_MUX_SETTING;
-	config_usart.pinmux_pad0 = EDBG_CDC_SERCOM_PINMUX_PAD0;
-	config_usart.pinmux_pad1 = EDBG_CDC_SERCOM_PINMUX_PAD1;
-	config_usart.pinmux_pad2 = EDBG_CDC_SERCOM_PINMUX_PAD2;
-	config_usart.pinmux_pad3 = EDBG_CDC_SERCOM_PINMUX_PAD3;
+	config_usart.baudrate = 115200;
+	config_usart.mux_setting = USART_RX_3_TX_2_XCK_3;
+	config_usart.pinmux_pad0 = PINMUX_UNUSED;
+	config_usart.pinmux_pad1 = PINMUX_UNUSED;
+	config_usart.pinmux_pad2 = PINMUX_PB10D_SERCOM4_PAD2;
+	config_usart.pinmux_pad3 = PINMUX_PB11D_SERCOM4_PAD3;
 
-	
-	//config_usart.mux_setting = USART_RX_3_TX_2_XCK_3;
-	//config_usart.pinmux_pad0 = PINMUX_UNUSED;
-	//config_usart.pinmux_pad1 = PINMUX_UNUSED;
-	//config_usart.pinmux_pad2 = PINMUX_PA20D_SERCOM3_PAD2;
-	//config_usart.pinmux_pad3 = PINMUX_PA21D_SERCOM3_PAD3;
 
-	stdio_serial_init(&usart_instance, EDBG_CDC_MODULE, &config_usart);
+	stdio_serial_init(&usart_instance, SERCOM4, &config_usart);
 
 	usart_enable(&usart_instance);
 }
@@ -99,11 +84,9 @@ int main (void)
 {
 	system_init();
 	system_interrupt_enable_global();
-
 	at25dfx_init();
 	configure_nvm();
 	configure_usart();
-	
 	// 	nvm_get_config_defaults(&config_nvm);
 	// 	config_nvm.manual_page_write = false;
 	// 	nvm_set_config(&config_nvm);

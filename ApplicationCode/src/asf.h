@@ -75,6 +75,9 @@
 // From module: Generic board support
 #include <board.h>
 
+// From module: IOPORT - General purpose I/O service
+#include <ioport.h>
+
 // From module: Interrupt management - SAM implementation
 #include <interrupt.h>
 
@@ -123,9 +126,5 @@
 
 // From module: USART - Serial interface- SAM implementation for devices with only USART
 #include <serial.h>
-
-// From module: WDT - Watchdog Timer (Callback APIs)
-#include <wdt.h>
-#include <wdt_callback.h>
 
 #endif // ASF_H

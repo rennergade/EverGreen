@@ -196,37 +196,39 @@ static void flash_cli() {
 	if(checksum != new_fw_header.checksum) {
 		//TODO: throw error
 		} else {
-		printf("successfully put CLI into memory!");
+		printf("successfully put CLI into memory!\r\n");
 	}
 	
 }
 
 void run_application()
 {
-/* Pointer to the Application Section */
-void (*application_code_entry)(void);
-/* Rebase the Stack Pointer */
-__set_MSP(*(uint32_t*) APP_START_ADDRESS);
-/* Rebase the vector table base address TODO: use RAM */
-SCB->VTOR = (( uint32_t)APP_START_ADDRESS & SCB_VTOR_TBLOFF_Msk);
-/* Load the Reset Handler address of the application */
-application_code_entry = (void (*)(void))(unsigned *)(*(unsigned *)(APP_START_ADDRESS+ 4));
-/* Jump to user Reset Handler in the application */
-application_code_entry();
+	usart_disable(&usart_instance);
+	at25dfx_chip_sleep(&at25dfx_chip);
+	/* Pointer to the Application Section */
+	void (*application_code_entry)(void);
+	/* Rebase the Stack Pointer */
+	__set_MSP(*(uint32_t*) APP_START_ADDRESS);
+	/* Rebase the vector table base address TODO: use RAM */
+	SCB->VTOR = (( uint32_t)APP_START_ADDRESS & SCB_VTOR_TBLOFF_Msk);
+	/* Load the Reset Handler address of the application */
+	application_code_entry = (void (*)(void))(unsigned *)(*(unsigned *)(APP_START_ADDRESS+ 4));
+	/* Jump to user Reset Handler in the application */
+	application_code_entry();
 }
 
 
 void run_bootloader()
 {
 	configure_usart();
-	printf("bootloader\n");
+	printf("bootloader\r\n");
 	volatile enum status_code uart_read_code;
 	char singleCharInput;
 	do
 		uart_read_code = usart_read_buffer_wait(&usart_instance, &singleCharInput, 1);
 	while (STATUS_OK != uart_read_code || singleCharInput != '#');
 
-	printf("got #\n\r");
+	printf("got #\r\n");
 	if (reset_vector[1] != 0xFFFFFFFF) {
 		volatile enum status_code read_nvm_code;
 		fw_header_t fw_information;
@@ -235,18 +237,19 @@ void run_bootloader()
 		char fw_version[9];
 		char bl_version[9];
 		
+		
 		uint16_t test_fw_version = 0x3c42;      //0011 1100 0100 0010 12.04.02
-		uint16_t test_bl_version = 0x1e80;      //0001 1110 1000 0000 14.08.00
-		create_version_string(fw_version, test_fw_version);
-		create_version_string(bl_version, test_bl_version); 
+	//	uint16_t test_bl_version = 0x1e80;      //0001 1110 1000 0000 14.08.00
+		create_version_string(fw_version, test_fw_version); 
+	//	create_version_string(bl_version, test_bl_version);
 		
 		//create_version_string(fw_version, fw_information.fw_version);
-		//create_version_string(bl_version, boot_status.bl_version);
+		create_version_string(bl_version, boot_status.bl_version);
 
 
-		printf("Evergreen Bootloader\n\r"
-		       "Current fW version: %s\n\r"
-		       "Current BL version: %s\n\r", fw_version, bl_version);
+		printf("Evergreen Bootloader\r\n"
+		       "Current fW version: %s\r\n"
+		       "Current BL version: %s\r\n", fw_version, bl_version);
 
 		if (boot_status.new_image_ready) {
 			
@@ -300,15 +303,14 @@ void run_bootloader()
 			if(checksum != new_fw_header.checksum) {
 				//TODO: throw error
 			} else {
-				printf("successfully updated firmware!");
+				printf("successfully updated firmware!\r\n");
 				run_application();	
 			}
-			
 		} else {
 			//no new image, prompt to go to CLI or application
+			printf("no new image ready for install. \r\n"
+					"Would you like to go to the Application? (y/n)\r\n");
 			do {
-				printf("no new image ready for install. \r\n"
-				"Would you like to go to the Application? (y/n)\n\r");
 				uart_read_code = usart_read_buffer_wait(&usart_instance, &singleCharInput, 1);
 			} while (STATUS_OK != uart_read_code || (singleCharInput != 'y' && singleCharInput != 'n'));
 			if('y' == singleCharInput) 
@@ -316,15 +318,12 @@ void run_bootloader()
 			run_application();
 		}
 	} else {
-		printf("No application detected.\n\r");
+		printf("No application detected.\r\n");
 	}
 }
 
 int main(void)
 {
-	//TODO: find out how to disable reset button
-
-
 	system_init();
 	system_interrupt_enable_global();
 	delay_init();
