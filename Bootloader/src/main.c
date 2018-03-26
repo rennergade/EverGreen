@@ -220,8 +220,6 @@ void run_application()
 
 void run_bootloader()
 {
-	configure_usart();
-	printf("bootloader\r\n");
 	volatile enum status_code uart_read_code;
 	char singleCharInput;
 	do
@@ -327,6 +325,7 @@ int main(void)
 	system_init();
 	system_interrupt_enable_global();
 	delay_init();
+	configure_usart();
 	configure_nvm();
 
 	enum status_code read_nvm_code;
@@ -395,7 +394,7 @@ int main(void)
 	    || boot_status.signature[2] != 0xAB) {
 		//flash error, enter bootloader, throw error
 		//TODO: write this code
+	} else {
+		run_application();	
 	}
-
-	//run_application();
 }
