@@ -1,9 +1,9 @@
 /**
  * \file
  *
- * \brief HTTP File Downloader Example.
+ * \brief SAM TCC - Timer Counter for Control Applications Callback Driver
  *
- * Copyright (c) 2016-2017 Atmel Corporation. All rights reserved.
+ * Copyright (C) 2013-2015 Atmel Corporation. All rights reserved.
  *
  * \asf_license_start
  *
@@ -22,6 +22,9 @@
  * 3. The name of Atmel may not be used to endorse or promote products derived
  *    from this software without specific prior written permission.
  *
+ * 4. This software may only be redistributed and used in connection with an
+ *    Atmel microcontroller product.
+ *
  * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
@@ -37,46 +40,54 @@
  * \asf_license_stop
  *
  */
+/*
+ * Support and FAQ: visit <a href="http://www.atmel.com/design-support/">Atmel Support</a>
+ */
 
-#ifndef MAIN_H_INCLUDED
-#define MAIN_H_INCLUDED
+
+#ifndef TCC_CALLBACK_H_INCLUDED
+#define TCC_CALLBACK_H_INCLUDED
+
+#include "tcc.h"
+#include <system_interrupt.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/** Wi-Fi AP Settings. */
-#define MAIN_WLAN_SSID                       "AirPennNet-Device" /**< Destination SSID */
-#define MAIN_WLAN_AUTH                       M2M_WIFI_SEC_WPA_PSK /**< Security manner */
-#define MAIN_WLAN_PSK                        "penn1740wifi" /**< Password for Destination SSID */
+#if !defined(__DOXYGEN__)
+extern void *_tcc_instances[TCC_INST_NUM];
+#endif
 
-/** IP address parsing. */
-#define IPV4_BYTE(val, index)                ((val >> (index * 8)) & 0xFF)
 
-/** Content URI for download. */
-#define MAIN_HTTP_FILE_URL                   "http://www.atmel.com/Images/Atmel-45154-Product-Selection-Guide_Brochure.pdf"
+/**
+ * \name Callback Management
+ * {@
+ */
 
-/** Maximum size for packet buffer. */
-#define MAIN_BUFFER_MAX_SIZE                 (1446)
-/** Maximum file name length. */
-#define MAIN_MAX_FILE_NAME_LENGTH            (250)
-/** Maximum file extension length. */
-#define MAIN_MAX_FILE_EXT_LENGTH             (8)
-/** Output format with '0'. */
-#define MAIN_ZERO_FMT(SZ)                    (SZ == 4) ? "%04d" : (SZ == 3) ? "%03d" : (SZ == 2) ? "%02d" : "%d"
+enum status_code tcc_register_callback(
+		struct tcc_module *const module,
+		tcc_callback_t callback_func,
+		const enum tcc_callback callback_type);
 
-typedef enum {
-	NOT_READY = 0, /*!< Not ready. */
-	STORAGE_READY = 0x01, /*!< Storage is ready. */
-	WIFI_CONNECTED = 0x02, /*!< Wi-Fi is connected. */
-	GET_REQUESTED = 0x04, /*!< GET request is sent. */
-	DOWNLOADING = 0x08, /*!< Running to download. */
-	COMPLETED = 0x10, /*!< Download completed. */
-	CANCELED = 0x20 /*!< Download canceled. */
-} download_state;
+enum status_code tcc_unregister_callback(
+		struct tcc_module *const module,
+		const enum tcc_callback callback_type);
+
+void tcc_enable_callback(
+		struct tcc_module *const module,
+		const enum tcc_callback callback_type);
+
+void tcc_disable_callback(
+		struct tcc_module *const module,
+		const enum tcc_callback callback_type);
+
+/**
+ * @}
+ */
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* MAIN_H_INCLUDED */
+#endif /* TCC_CALLBACK_H_INCLUDED */

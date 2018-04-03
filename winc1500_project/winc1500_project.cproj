@@ -40,6 +40,7 @@
           <option id="sam0.drivers.port" value="Add" config="" content-id="Atmel.ASF" />
           <option id="sam0.drivers.system" value="Add" config="" content-id="Atmel.ASF" />
           <option id="sam0.utils.stdio.stdio_serial" value="Add" config="" content-id="Atmel.ASF" />
+          <option id="sam0.drivers.tcc" value="Add" config="callback" content-id="Atmel.ASF" />
           <option id="sam0.utils.linker_scripts" value="Add" config="" content-id="Atmel.ASF" />
         </options>
         <configurations>
@@ -306,6 +307,17 @@
           <file path="src/ASF/sam0/drivers/sercom/usart/quick_start_dma/qs_usart_dma_use.h" framework="" version="3.35.1" source="sam0\drivers\sercom\usart\quick_start_dma\qs_usart_dma_use.h" changed="False" content-id="Atmel.ASF" />
           <file path="src/ASF/sam0/utils/stdio/read.c" framework="" version="3.35.1" source="sam0\utils\stdio\read.c" changed="False" content-id="Atmel.ASF" />
           <file path="src/ASF/sam0/utils/stdio/write.c" framework="" version="3.35.1" source="sam0\utils\stdio\write.c" changed="False" content-id="Atmel.ASF" />
+          <file path="src/ASF/sam0/drivers/tcc/tcc_callback.c" framework="" version="3.35.1" source="sam0\drivers\tcc\tcc_callback.c" changed="False" content-id="Atmel.ASF" />
+          <file path="src/ASF/sam0/drivers/tcc/tcc.c" framework="" version="3.35.1" source="sam0\drivers\tcc\tcc.c" changed="False" content-id="Atmel.ASF" />
+          <file path="src/ASF/sam0/drivers/tcc/quick_start_faultn/qs_tcc_faultn.h" framework="" version="3.35.1" source="sam0\drivers\tcc\quick_start_faultn\qs_tcc_faultn.h" changed="False" content-id="Atmel.ASF" />
+          <file path="src/ASF/sam0/drivers/tcc/quick_start_buffering/qs_tcc_buffering.h" framework="" version="3.35.1" source="sam0\drivers\tcc\quick_start_buffering\qs_tcc_buffering.h" changed="False" content-id="Atmel.ASF" />
+          <file path="src/ASF/sam0/drivers/tcc/quick_start_timer/qs_tcc_timer.h" framework="" version="3.35.1" source="sam0\drivers\tcc\quick_start_timer\qs_tcc_timer.h" changed="False" content-id="Atmel.ASF" />
+          <file path="src/ASF/sam0/drivers/tcc/quick_start_faultx/qs_tcc_faultx.h" framework="" version="3.35.1" source="sam0\drivers\tcc\quick_start_faultx\qs_tcc_faultx.h" changed="False" content-id="Atmel.ASF" />
+          <file path="src/ASF/sam0/drivers/tcc/quick_start_dma/qs_tcc_dma.h" framework="" version="3.35.1" source="sam0\drivers\tcc\quick_start_dma\qs_tcc_dma.h" changed="False" content-id="Atmel.ASF" />
+          <file path="src/ASF/sam0/drivers/tcc/tcc.h" framework="" version="3.35.1" source="sam0\drivers\tcc\tcc.h" changed="False" content-id="Atmel.ASF" />
+          <file path="src/ASF/sam0/drivers/tcc/quick_start_callback/qs_tcc_callback.h" framework="" version="3.35.1" source="sam0\drivers\tcc\quick_start_callback\qs_tcc_callback.h" changed="False" content-id="Atmel.ASF" />
+          <file path="src/ASF/sam0/drivers/tcc/quick_start/qs_tcc_basic.h" framework="" version="3.35.1" source="sam0\drivers\tcc\quick_start\qs_tcc_basic.h" changed="False" content-id="Atmel.ASF" />
+          <file path="src/ASF/sam0/drivers/tcc/tcc_callback.h" framework="" version="3.35.1" source="sam0\drivers\tcc\tcc_callback.h" changed="False" content-id="Atmel.ASF" />
         </files>
         <documentation help="http://asf.atmel.com/docs/3.35.1/common.applications.user_application.sam0_system.user_board.atsamd21g18a/html/index.html" />
         <offline-documentation help="" />
@@ -334,6 +346,7 @@
       <Value>EXTINT_CALLBACK_MODE=true</Value>
       <Value>SPI_CALLBACK_MODE=true</Value>
       <Value>USART_CALLBACK_MODE=true</Value>
+      <Value>TCC_ASYNC=true</Value>
     </ListValues>
   </armgcc.compiler.symbols.DefSymbols>
   <armgcc.compiler.directories.IncludePaths>
@@ -375,6 +388,7 @@
       <Value>../src/ASF/sam0/utils/stdio/stdio_serial</Value>
       <Value>../src/ASF/common/services/serial</Value>
       <Value>../src/ASF/sam0/drivers/sercom/usart</Value>
+      <Value>../src/ASF/sam0/drivers/tcc</Value>
     </ListValues>
   </armgcc.compiler.directories.IncludePaths>
   <armgcc.compiler.optimization.level>Optimize for size (-Os)</armgcc.compiler.optimization.level>
@@ -435,9 +449,10 @@
       <Value>../src/ASF/sam0/utils/stdio/stdio_serial</Value>
       <Value>../src/ASF/common/services/serial</Value>
       <Value>../src/ASF/sam0/drivers/sercom/usart</Value>
+      <Value>../src/ASF/sam0/drivers/tcc</Value>
     </ListValues>
   </armgcc.assembler.general.IncludePaths>
-  <armgcc.preprocessingassembler.general.AssemblerFlags>-DARM_MATH_CM0PLUS=true -DBOARD=USER_BOARD -DSYSTICK_MODE -DEXTINT_CALLBACK_MODE=true -DSPI_CALLBACK_MODE=true -DUSART_CALLBACK_MODE=true</armgcc.preprocessingassembler.general.AssemblerFlags>
+  <armgcc.preprocessingassembler.general.AssemblerFlags>-DARM_MATH_CM0PLUS=true -DBOARD=USER_BOARD -DSYSTICK_MODE -DEXTINT_CALLBACK_MODE=true -DSPI_CALLBACK_MODE=true -DUSART_CALLBACK_MODE=true -DTCC_ASYNC=true</armgcc.preprocessingassembler.general.AssemblerFlags>
   <armgcc.preprocessingassembler.general.IncludePaths>
     <ListValues>
       <Value>../src/ASF/common/boards</Value>
@@ -477,6 +492,7 @@
       <Value>../src/ASF/sam0/utils/stdio/stdio_serial</Value>
       <Value>../src/ASF/common/services/serial</Value>
       <Value>../src/ASF/sam0/drivers/sercom/usart</Value>
+      <Value>../src/ASF/sam0/drivers/tcc</Value>
     </ListValues>
   </armgcc.preprocessingassembler.general.IncludePaths>
 </ArmGcc>
@@ -499,6 +515,7 @@
       <Value>EXTINT_CALLBACK_MODE=true</Value>
       <Value>SPI_CALLBACK_MODE=true</Value>
       <Value>USART_CALLBACK_MODE=true</Value>
+      <Value>TCC_ASYNC=true</Value>
     </ListValues>
   </armgcc.compiler.symbols.DefSymbols>
   <armgcc.compiler.directories.IncludePaths>
@@ -540,6 +557,7 @@
       <Value>../src/ASF/sam0/utils/stdio/stdio_serial</Value>
       <Value>../src/ASF/common/services/serial</Value>
       <Value>../src/ASF/sam0/drivers/sercom/usart</Value>
+      <Value>../src/ASF/sam0/drivers/tcc</Value>
     </ListValues>
   </armgcc.compiler.directories.IncludePaths>
   <armgcc.compiler.optimization.level>Optimize (-O1)</armgcc.compiler.optimization.level>
@@ -601,10 +619,11 @@
       <Value>../src/ASF/sam0/utils/stdio/stdio_serial</Value>
       <Value>../src/ASF/common/services/serial</Value>
       <Value>../src/ASF/sam0/drivers/sercom/usart</Value>
+      <Value>../src/ASF/sam0/drivers/tcc</Value>
     </ListValues>
   </armgcc.assembler.general.IncludePaths>
   <armgcc.assembler.debugging.DebugLevel>Default (-g)</armgcc.assembler.debugging.DebugLevel>
-  <armgcc.preprocessingassembler.general.AssemblerFlags>-DARM_MATH_CM0PLUS=true -DBOARD=USER_BOARD -DSYSTICK_MODE -DEXTINT_CALLBACK_MODE=true -DSPI_CALLBACK_MODE=true -DUSART_CALLBACK_MODE=true</armgcc.preprocessingassembler.general.AssemblerFlags>
+  <armgcc.preprocessingassembler.general.AssemblerFlags>-DARM_MATH_CM0PLUS=true -DBOARD=USER_BOARD -DSYSTICK_MODE -DEXTINT_CALLBACK_MODE=true -DSPI_CALLBACK_MODE=true -DUSART_CALLBACK_MODE=true -DTCC_ASYNC=true</armgcc.preprocessingassembler.general.AssemblerFlags>
   <armgcc.preprocessingassembler.general.IncludePaths>
     <ListValues>
       <Value>../src/ASF/common/boards</Value>
@@ -644,6 +663,7 @@
       <Value>../src/ASF/sam0/utils/stdio/stdio_serial</Value>
       <Value>../src/ASF/common/services/serial</Value>
       <Value>../src/ASF/sam0/drivers/sercom/usart</Value>
+      <Value>../src/ASF/sam0/drivers/tcc</Value>
     </ListValues>
   </armgcc.preprocessingassembler.general.IncludePaths>
   <armgcc.preprocessingassembler.debugging.DebugLevel>Default (-Wa,-g)</armgcc.preprocessingassembler.debugging.DebugLevel>
@@ -727,6 +747,14 @@
     <Folder Include="src\ASF\sam0\drivers\system\power\power_sam_d_r_h\" />
     <Folder Include="src\ASF\sam0\drivers\system\reset\" />
     <Folder Include="src\ASF\sam0\drivers\system\reset\reset_sam_d_r_h\" />
+    <Folder Include="src\ASF\sam0\drivers\tcc\" />
+    <Folder Include="src\ASF\sam0\drivers\tcc\quick_start\" />
+    <Folder Include="src\ASF\sam0\drivers\tcc\quick_start_buffering\" />
+    <Folder Include="src\ASF\sam0\drivers\tcc\quick_start_callback\" />
+    <Folder Include="src\ASF\sam0\drivers\tcc\quick_start_dma\" />
+    <Folder Include="src\ASF\sam0\drivers\tcc\quick_start_faultn\" />
+    <Folder Include="src\ASF\sam0\drivers\tcc\quick_start_faultx\" />
+    <Folder Include="src\ASF\sam0\drivers\tcc\quick_start_timer\" />
     <Folder Include="src\ASF\sam0\utils\" />
     <Folder Include="src\ASF\sam0\utils\cmsis\" />
     <Folder Include="src\ASF\sam0\utils\cmsis\samd21\" />
@@ -752,6 +780,8 @@
     <Folder Include="src\ASF\thirdparty\CMSIS\Lib\" />
     <Folder Include="src\ASF\thirdparty\CMSIS\Lib\GCC\" />
     <Folder Include="src\config\" />
+    <Folder Include="src\iot\" />
+    <Folder Include="src\iot\http\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="src\ASF\common2\components\memory\serial_flash\at25dfx\at25dfx.c">
@@ -1504,6 +1534,39 @@
     <None Include="src\ASF\sam0\utils\cmsis\samd21\include\pio\samd21e16b.h">
       <SubType>compile</SubType>
     </None>
+    <None Include="src\ASF\sam0\drivers\tcc\quick_start_faultn\qs_tcc_faultn.h">
+      <SubType>compile</SubType>
+    </None>
+    <None Include="src\ASF\sam0\drivers\tcc\quick_start_buffering\qs_tcc_buffering.h">
+      <SubType>compile</SubType>
+    </None>
+    <None Include="src\ASF\sam0\drivers\tcc\quick_start_timer\qs_tcc_timer.h">
+      <SubType>compile</SubType>
+    </None>
+    <None Include="src\ASF\sam0\drivers\tcc\quick_start_faultx\qs_tcc_faultx.h">
+      <SubType>compile</SubType>
+    </None>
+    <None Include="src\ASF\sam0\drivers\tcc\quick_start_dma\qs_tcc_dma.h">
+      <SubType>compile</SubType>
+    </None>
+    <None Include="src\ASF\sam0\drivers\tcc\quick_start_callback\qs_tcc_callback.h">
+      <SubType>compile</SubType>
+    </None>
+    <None Include="src\ASF\sam0\drivers\tcc\quick_start\qs_tcc_basic.h">
+      <SubType>compile</SubType>
+    </None>
+    <Compile Include="src\ASF\sam0\drivers\tcc\tcc.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <None Include="src\ASF\sam0\drivers\tcc\tcc.h">
+      <SubType>compile</SubType>
+    </None>
+    <Compile Include="src\ASF\sam0\drivers\tcc\tcc_callback.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <None Include="src\ASF\sam0\drivers\tcc\tcc_callback.h">
+      <SubType>compile</SubType>
+    </None>
     <Compile Include="src\ASF\sam0\utils\cmsis\samd21\source\gcc\startup_samd21.c">
       <SubType>compile</SubType>
     </Compile>
@@ -1523,6 +1586,33 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\ASF\sam0\utils\syscalls\gcc\syscalls.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\config\conf_sw_timer.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\iot\http\http_client.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\iot\http\http_client.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\iot\http\http_entity.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\iot\http\http_header.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\iot\stream_writer.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\iot\stream_writer.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\iot\sw_timer.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\iot\sw_timer.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\main.c">
