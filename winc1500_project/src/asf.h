@@ -81,6 +81,9 @@
 // From module: Interrupt management - SAM implementation
 #include <interrupt.h>
 
+// From module: NVM - Non-Volatile Memory
+#include <nvm.h>
+
 // From module: PORT - GPIO Pin Control
 #include <port.h>
 

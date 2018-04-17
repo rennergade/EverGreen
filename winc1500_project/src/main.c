@@ -10,108 +10,168 @@
 #include "socket/include/socket.h"
 #include "iot/http/http_client.h"
 
+#define FW_VERSION 0                       /// Current firmware version
+
 //UART Macros
-#define BAUD_RATE               115200
+#define BAUD_RATE 115200
 
 //Memory Location Macros
-#define FW1_HEADER_ADDR         0x001000                        /// Header for current or new firmware
-#define FW2_HEADER_ADDR         0x040000                        /// Header for safe CLI
-#define FW1_ADDR                0x002000                        /// New/current firmware
-#define FW2_ADDR                0x041000                        /// CLI firmware
-#define FW_MAX_SIZE                             0x03E000        /// Max size of each firmware
-#define SIXTY_FOUR_KB			0xFA00
-#define THIRTY_TWO_KB			SIXTY_FOUR_KB /2
-#define FOUR_KB					THIRTY_TWO_KB/8
+#define FW1_ERASE_ADDR 0x000000 /// Sector to start erasing at for 64kb
+#define FW2_ERASE_ADDR 0x3FFFC /// Sector to start erasing at for 64kb
+#define FW1_HEADER_ADDR 0x001000                /// Header for current or new firmware
+#define FW2_HEADER_ADDR 0x040000                /// Header for safe CLI
+#define FW1_ADDR 0x002000                       /// New/current firmware
+#define FW2_ADDR 0x041000                       /// CLI firmware
+#define FW_MAX_SIZE 0x3DFFC                    /// Max size of each firmware
+#define BOOT_STATUS_ADDR 0x3FC0                 /// Boot status address in internal NVM
+#define SIXTY_FOUR_KB 0x00FFFF
+#define THIRTY_TWO_KB SIXTY_FOUR_KB / 2
+#define FOUR_KB THIRTY_TWO_KB / 8
 
 //Flash Macros
-#define AT25DFX_BUFFER_SIZE  (10)
-#define FLASH_ROW_SIZE                          256
-#define AT25DFX_SPI                 SERCOM1
-#define AT25DFX_MEM_TYPE            AT25DFX_081A
-#define AT25DFX_SPI_PINMUX_SETTING  SPI_SIGNAL_MUX_SETTING_E
-#define AT25DFX_SPI_PINMUX_PAD0     PINMUX_PA16C_SERCOM1_PAD0
-#define AT25DFX_SPI_PINMUX_PAD1     PINMUX_UNUSED
-#define AT25DFX_SPI_PINMUX_PAD2     PINMUX_PA18C_SERCOM1_PAD2
-#define AT25DFX_SPI_PINMUX_PAD3     PINMUX_PA19C_SERCOM1_PAD3
-#define AT25DFX_CS                  PIN_PA07
-#define AT25DFX_CLOCK_SPEED         1000000
+#define FLASH_ROW_SIZE 256              /// number of bytes per row in flash memory
+#define AT25DFX_SPI SERCOM1             /// sercom for external flash
+#define AT25DFX_MEM_TYPE AT25DFX_081A   /// what chip is it
+#define AT25DFX_SPI_PINMUX_SETTING SPI_SIGNAL_MUX_SETTING_E
+#define AT25DFX_SPI_PINMUX_PAD0 PINMUX_PA16C_SERCOM1_PAD0
+#define AT25DFX_SPI_PINMUX_PAD1 PINMUX_UNUSED
+#define AT25DFX_SPI_PINMUX_PAD2 PINMUX_PA18C_SERCOM1_PAD2
+#define AT25DFX_SPI_PINMUX_PAD3 PINMUX_PA19C_SERCOM1_PAD3
+#define AT25DFX_CS PIN_PA07
+#define AT25DFX_CLOCK_SPEED 1000000 /// spi clock speed
 
 //WiFI Macros
-#define SSID            "AirPennNet-Device"
-#define AUTH_TYPE       M2M_WIFI_SEC_WPA_PSK
-#define WIFI_PASSWORD   "penn1740wifi"
-#define TCP_PORT        80
-#define TCP_IP_ADDR     0x9e82445b //"158.130.68.91"
-#define MAIN_HTTP_FILE_URL "http://www.seas.upenn.edu/~warcher/"
-#define MTU_HTTP                1500
-#define IPV4_BYTE(val, index)                ((val >> (index * 8)) & 0xFF)
+#define SSID "AirPennNet-Device"                                                        /// SSID to connect to
+#define AUTH_TYPE M2M_WIFI_SEC_WPA_PSK                                                  /// authentication type
+#define WIFI_PASSWORD "penn1740wifi"                                                    /// password
+#define FW_HEADER_ADDRESS "http://www.seas.upenn.edu/~warcher/test_metadata.bin"        /// url for header address
+#define FIRMWARE_ADDRESS "http://www.seas.upenn.edu/~warcher/"                          /// url for firmware address download
+#define MTU_HTTP 1500                                                                   /// maximum transmission unit (MTU) or maximum packet size for HTTP @details limited by Ethernet
+#define IPV4_BYTE(val, index) ((val >> (index * 8)) & 0xFF)                             /// macro function for bit masking IPV4 addressing
 
+/**
+ * @typedef download_state
+ * @brief current state of downloader
+ * @details keeps current state sequential during async functions (ie callbacks)
+ */
 typedef enum {
-	NOT_READY	= 0,    /*!< Not ready. */
-	STORAGE_READY	= 0x01, /*!< Storage is ready. */
-	WIFI_CONNECTED	= 0x02, /*!< Wi-Fi is connected. */
-	GET_REQUESTED	= 0x04, /*!< GET request is sent. */
-	DOWNLOADING	= 0x08, /*!< Running to download. */
-	COMPLETED	= 0x10, /*!< Download completed. */
-	CANCELED	= 0x20  /*!< Download canceled. */
+	NOT_READY		= 0,    ///  Not ready
+	STORAGE_READY		= 0x01, /// Storage is ready
+	WIFI_CONNECTED		= 0x02, /// Wi-Fi is connected
+	GET_REQUESTED		= 0x04, /// GET request is sent
+	DOWNLOADING		= 0x08, /// Running to download
+	COMPLETED		= 0x10, /// Download completed
+	CANCELED		= 0x20, /// Download canceled
+	NOT_CHECKED		= 0x40, /// haven't checked update
+	UPDATE_AVAILABLE	= 0x80, /// Update Available
+	UPDATE_NOT_AVAILABLE	= 0x100 //Update not available
 } download_state;
+
+typedef struct fw_header {
+	uint16_t	fw_version;     /// firmware version
+	uint32_t	checksum;       /// precomputed checksum value to verify
+} fw_header_t;
+
+typedef struct fw_status {
+	uint8_t		signature[3];           ///set values that confirm bootloader is still in tact
+	uint8_t		new_image_ready;        /// are we ready to write a new image?
+	uint16_t	bl_version;
+} fw_status_t;
 
 //Flash global vars
 struct spi_module at25dfx_spi;
 struct at25dfx_chip_module at25dfx_chip;
 struct usart_module usart_instance;
-
-//TCP global vars
-static SOCKET tcp_client_socket = -1; /// socket for http connection
-static uint8_t test_receive_buffer[1460];
+uint8_t write_row_buffer[FLASH_ROW_SIZE];       /// buffered write so only write 256 bytes at a time
+uint8_t buffer_cursor;                          /// location to write to in row buffer
+unsigned int write_address;                     /// current write address in flash memory
+crc32_t crc_val;
 
 struct http_client_module http_client_module_inst;
 static uint32_t http_file_size;
 static uint32_t received_file_size = 0; /// number of bytes successfully written to memory
-uint8_t write_row_buffer[256];          /// buffered write so only write 256 bytes at a time
-uint8_t buffer_cursor;                  /// location to write to in row buffer
-unsigned int write_address;             /// current write address in flash memory
 unsigned int total_bytes_written;
-download_state down_state = NOT_READY;
+download_state down_state;
+uint32_t new_firmware_checksum = 0;
 struct sw_timer_module swt_module_inst;
+uint32_t global_test_counter = 0;
+
 
 /**
- * \brief Clear state parameter at download processing state.
- * \param[in] mask Check download_state.
+ * remove state from global download_state @ref down_state
+ * @param mask state to clear
+ *
  */
+//TODO: check and see if it will only clear on mask
 static void clear_state(download_state mask)
 {
 	down_state &= ~mask;
 }
 
 /**
- * \brief Add state parameter at download processing state.
- * \param[in] mask Check download_state.
+ * add a given state to the global download_state @ref down_state
+ * @param mask add given state
  */
 static void add_state(download_state mask)
 {
-	//TODO: check error codes
 	down_state |= mask;
-	if (mask == CANCELED || mask == COMPLETED) {
-		at25dfx_chip_set_sector_protect(&at25dfx_chip, 0x0000, true);
-		at25dfx_chip_set_sector_protect(&at25dfx_chip, 0xFA00 * 1, true);
-		at25dfx_chip_set_sector_protect(&at25dfx_chip, 0xFA00 * 2, true);
-		at25dfx_chip_set_sector_protect(&at25dfx_chip, 0xFA00 * 3, true);
-	}
+	if (mask == CANCELED || mask == COMPLETED)
+		at25dfx_chip_sleep(&at25dfx_chip);
+	else if (mask == DOWNLOADING)
+		at25dfx_chip_wake(&at25dfx_chip);
+}
+/**
+ * initialize global @ref down_state
+ */
+static void init_state()
+{
+	down_state = NOT_READY;
+	add_state(NOT_CHECKED);
 }
 
 /**
- * \brief File download processing state check.
- * \param[in] mask Check download_state.
- * \return true if this state is set, false otherwise.
+ * check is a state is set or not
+ * @param  mask state to check
+ * @return      true if state is set
  */
 static inline bool is_state_set(download_state mask)
 {
 	return (down_state & mask) != 0;
 }
 
+
+static void flash_dump(int starting_address, int num_bytes)
+{
+	//Clear flash for max firmware size here
+	at25dfx_chip_wake(&at25dfx_chip);
+
+	//check if chip is there
+	if (at25dfx_chip_check_presence(&at25dfx_chip) != STATUS_OK) {
+		printf("flash_Dump: No flash chip.\r\n");
+		return;
+	}
+	enum status_code read_status;
+	for (int i = 0; i < num_bytes / FLASH_ROW_SIZE; i++) {
+		read_status = at25dfx_chip_read_buffer(&at25dfx_chip, starting_address + (i * FLASH_ROW_SIZE), write_row_buffer, FLASH_ROW_SIZE);
+		if (STATUS_OK != read_status) {
+			printf("verify_flash: error trying to read external flash. %d", read_status);
+			return false;
+		}
+		printf("flash_dump: %d. %s\r\n", i, write_row_buffer);
+	}
+	int remaining_bytes = num_bytes % FLASH_ROW_SIZE;
+	read_status = at25dfx_chip_read_buffer(&at25dfx_chip, starting_address + num_bytes - remaining_bytes, write_row_buffer, remaining_bytes);
+	if (STATUS_OK != read_status) {
+		printf("verify_flash: error trying to read external flash. %d", read_status);
+		return false;
+	}
+	printf("flash_dump: %s\r\n", write_row_buffer);
+
+	at25dfx_chip_sleep(&at25dfx_chip);
+}
+
 /**
- * \brief Start file download via HTTP connection.
+ * ensures proper state before GET Request
  */
 static void start_download(void)
 {
@@ -134,17 +194,218 @@ static void start_download(void)
 		printf("start_download: running download already.\r\n");
 		return;
 	}
+	if (is_state_set(NOT_CHECKED)) {
+		printf("start_download [NOT_CHECKED]: sending HTTP request for header\r\n");
+		http_client_send_request(&http_client_module_inst, FW_HEADER_ADDRESS, HTTP_METHOD_GET, NULL, NULL);
+		return;
+	}
+	if (is_state_set(UPDATE_AVAILABLE)) {
+		printf("start_download [UPDATE_AVAILABLE]: sending HTTP request for firmware\r\n");
+		http_client_send_request(&http_client_module_inst, FIRMWARE_ADDRESS, HTTP_METHOD_GET, NULL, NULL);
+		return;
+	}
+	if (is_state_set(UPDATE_NOT_AVAILABLE)) {
+		printf("start_download: no update available\r\n");
+		add_state(COMPLETED);
+		return;
+	}
+}
 
-	/* Send the HTTP request. */
-	printf("start_download: sending HTTP request...\r\n");
-	http_client_send_request(&http_client_module_inst, MAIN_HTTP_FILE_URL, HTTP_METHOD_GET, NULL, NULL);
+/**
+ * update the boot status struct in internal memory
+ */
+static void update_boot_status()
+{
+	struct nvm_parameters nvm_information;
+
+	nvm_get_parameters(&nvm_information);
+	uint16_t num_pages = nvm_information.nvm_number_of_pages;
+	int page_to_write = BOOT_STATUS_ADDR / NVMCTRL_PAGE_SIZE;
+	int row_to_erase = page_to_write / NVMCTRL_ROW_PAGES;
+	uint8_t page_offset = page_to_write - (row_to_erase * NVMCTRL_ROW_PAGES);
+	int row_address = row_to_erase * NVMCTRL_ROW_SIZE;
+	uint8_t row_buffer[NVMCTRL_ROW_SIZE];
+	enum status_code read_nvm_code;
+	for (int i = 0; i < NVMCTRL_ROW_PAGES; i++) {
+		int offset = i * NVMCTRL_PAGE_SIZE;
+		do
+			read_nvm_code = nvm_read_buffer(row_address + offset, row_buffer + offset, NVMCTRL_PAGE_SIZE);
+		while (STATUS_OK != read_nvm_code);
+	}
+
+	do
+		read_nvm_code = nvm_erase_row(row_address);
+	while (STATUS_OK != read_nvm_code);
+
+	fw_status_t write_boot;
+	memcpy(&write_boot, BOOT_STATUS_ADDR, sizeof(fw_status_t));
+	write_boot.new_image_ready = 1;
+	memcpy(row_buffer + (page_offset * NVMCTRL_PAGE_SIZE), &write_boot, sizeof(fw_status_t));
+
+	for (int i = 0; i < NVMCTRL_ROW_PAGES; i++) {
+		int offset = i * NVMCTRL_PAGE_SIZE;
+		do
+			read_nvm_code = nvm_write_buffer(row_address + offset, row_buffer + offset, NVMCTRL_PAGE_SIZE);
+		while (STATUS_OK != read_nvm_code);
+	}
+}
+
+/**
+ * calculates crc for firmware to ensure flash wrote correctly
+ * @param  known_checksum checksum calculated during download
+ * @return                true if checksums match
+ */
+bool verify_flash(crc32_t known_checksum)
+{
+	//TODO: write this
+	crc32_t flash_checksum;
+
+	crc32_calculate(0, sizeof(uint32_t), &flash_checksum);
+
+	enum status_code read_status;
+	for (int i = 0; i < total_bytes_written / FLASH_ROW_SIZE; i++) {
+		read_status = at25dfx_chip_read_buffer(&at25dfx_chip, FW1_ADDR + (i * FLASH_ROW_SIZE), write_row_buffer, FLASH_ROW_SIZE);
+		if (STATUS_OK != read_status) {
+			printf("verify_flash: error trying to read external flash. %d", read_status);
+			return false;
+		}
+		//printf("verify_flash [flash_dump]: %d. %s\r\n", i, write_row_buffer);
+		crc32_recalculate(write_row_buffer, FLASH_ROW_SIZE, &flash_checksum);
+		printf("%d. verify_flash: crc_val: %d\r\n", i, flash_checksum);
+	}
+	int remaining_bytes = total_bytes_written % FLASH_ROW_SIZE;
+	printf("verify_flash: remaining bytes %d\r\n", remaining_bytes);
+	read_status = at25dfx_chip_read_buffer(&at25dfx_chip, FW1_ADDR + (total_bytes_written - remaining_bytes), write_row_buffer, remaining_bytes);
+	crc32_recalculate(write_row_buffer, remaining_bytes, &flash_checksum);
+	printf("verify_flash: calculated crc32 val: %d\r\n", flash_checksum);
+	return flash_checksum == known_checksum;
+}
+/**
+ * erase given firmware in flash Memory
+ * @param firmware_starter_address starting address of firmware
+ */
+static void erase_firmware_in_flash(uint32_t firmware_starter_address)
+{
+	if(firmware_starter_address == FW1_ADDR) {
+		firmware_starter_address = FW1_ERASE_ADDR;
+	} else if (firmware_starter_address == FW2_ADDR) {
+		firmware_starter_address = FW2_ERASE_ADDR;
+	} else {
+		//TODO: Throw error
+		return;
+	}
+	printf("FW1_ERASE_ADDR: %d\r\n", firmware_starter_address);
+	//Clear flash for max firmware size here
+	at25dfx_chip_wake(&at25dfx_chip);
+
+	//check if chip is there
+	if (at25dfx_chip_check_presence(&at25dfx_chip) != STATUS_OK) {
+		printf("store_file_packet: No flash chip.\r\n");
+		return;
+	}
+	//max fw size is ~252k = 3x 64kb sectors 1x 32kb sector 7x4kb sectors
+	//disable protection
+	enum status_code status_val;
+	//for (int i = 0; i < FW_MAX_SIZE / SIXTY_FOUR_KB; i++) {
+	status_val = at25dfx_chip_set_global_sector_protect(&at25dfx_chip, false);
+	if (STATUS_OK != status_val) {
+		add_state(CANCELED);
+		printf("store_file_packet: error clearing sector protect at address %d \r\n", SIXTY_FOUR_KB);
+		return;
+	}
+	//}
+	//erase block (sets to FF's)
+	status_val = at25dfx_chip_erase_block(&at25dfx_chip, firmware_starter_address, AT25DFX_BLOCK_SIZE_64KB);
+	if (STATUS_OK != status_val) {
+		add_state(CANCELED);
+		printf("store_file_packet: error erasing sector at address %d \r\n", firmware_starter_address);
+		return;
+	}
+	status_val = at25dfx_chip_erase_block(&at25dfx_chip, firmware_starter_address + (SIXTY_FOUR_KB * 1), AT25DFX_BLOCK_SIZE_64KB);
+	if (STATUS_OK != status_val) {
+		printf("store_file_packet: error erasing sector at address %d \r\n", firmware_starter_address + (SIXTY_FOUR_KB * 1));
+		return;
+	}
+	status_val = at25dfx_chip_erase_block(&at25dfx_chip, firmware_starter_address + (SIXTY_FOUR_KB * 2), AT25DFX_BLOCK_SIZE_64KB);
+	if (STATUS_OK != status_val) {
+		add_state(CANCELED);
+		printf("store_file_packet: error erasing sector at address %d \r\n", firmware_starter_address + (SIXTY_FOUR_KB * 2));
+		return;
+	}
+	status_val = at25dfx_chip_erase_block(&at25dfx_chip, firmware_starter_address + (SIXTY_FOUR_KB * 3) + (THIRTY_TWO_KB * 0), AT25DFX_BLOCK_SIZE_32KB);
+	if (STATUS_OK != status_val) {
+		add_state(CANCELED);
+		printf("store_file_packet: error erasing sector at address %d \r\n", firmware_starter_address + (SIXTY_FOUR_KB * 3) + (THIRTY_TWO_KB * 0));
+		return;
+	}
+	status_val = at25dfx_chip_erase_block(&at25dfx_chip, firmware_starter_address + (SIXTY_FOUR_KB * 2) + (THIRTY_TWO_KB * 1) + (FOUR_KB * 0), AT25DFX_BLOCK_SIZE_4KB);
+	if (STATUS_OK != status_val) {
+		add_state(CANCELED);
+		printf("store_file_packet: error erasing sector at address %d \r\n", firmware_starter_address + (SIXTY_FOUR_KB * 2) + (THIRTY_TWO_KB * 1) + (FOUR_KB * 0));
+		return;
+	}
+	status_val = at25dfx_chip_erase_block(&at25dfx_chip, firmware_starter_address + (SIXTY_FOUR_KB * 2) + (THIRTY_TWO_KB * 1) + (FOUR_KB * 1), AT25DFX_BLOCK_SIZE_4KB);
+	if (STATUS_OK != status_val) {
+		add_state(CANCELED);
+		printf("store_file_packet: error erasing sector at address %d \r\n", firmware_starter_address + (SIXTY_FOUR_KB * 2) + (THIRTY_TWO_KB * 1) + (FOUR_KB * 1));
+		return;
+	}
+	status_val = at25dfx_chip_erase_block(&at25dfx_chip, firmware_starter_address + (SIXTY_FOUR_KB * 2) + (THIRTY_TWO_KB * 1) + (FOUR_KB * 2), AT25DFX_BLOCK_SIZE_4KB);
+	if (STATUS_OK != status_val) {
+		add_state(CANCELED);
+		printf("store_file_packet: error erasing sector at address %d \r\n", firmware_starter_address + (SIXTY_FOUR_KB * 2) + (THIRTY_TWO_KB * 1) + (FOUR_KB * 2));
+		return;
+	}
+	status_val = at25dfx_chip_erase_block(&at25dfx_chip, firmware_starter_address + (SIXTY_FOUR_KB * 2) + (THIRTY_TWO_KB * 1) + (FOUR_KB * 3), AT25DFX_BLOCK_SIZE_4KB);
+	if (STATUS_OK != status_val) {
+		add_state(CANCELED);
+		printf("store_file_packet: error erasing sector at address %d \r\n", firmware_starter_address + (SIXTY_FOUR_KB * 2) + (THIRTY_TWO_KB * 1) + (FOUR_KB * 3));
+		return;
+	}
+	status_val = at25dfx_chip_erase_block(&at25dfx_chip, firmware_starter_address + (SIXTY_FOUR_KB * 2) + (THIRTY_TWO_KB * 1) + (FOUR_KB * 4), AT25DFX_BLOCK_SIZE_4KB);
+	if (STATUS_OK != status_val) {
+		add_state(CANCELED);
+		printf("store_file_packet: error erasing sector at address %d \r\n", firmware_starter_address + (SIXTY_FOUR_KB * 2) + (THIRTY_TWO_KB * 1) + (FOUR_KB * 4));
+		return;
+	}
+	status_val = at25dfx_chip_erase_block(&at25dfx_chip, firmware_starter_address + (SIXTY_FOUR_KB * 2) + (THIRTY_TWO_KB * 1) + (FOUR_KB * 5), AT25DFX_BLOCK_SIZE_4KB);
+	if (STATUS_OK != status_val) {
+		add_state(CANCELED);
+		printf("store_file_packet: error erasing sector at address %d \r\n", firmware_starter_address + (SIXTY_FOUR_KB * 2) + (THIRTY_TWO_KB * 1) + (FOUR_KB * 5));
+		return;
+	}
+	status_val = at25dfx_chip_erase_block(&at25dfx_chip, firmware_starter_address + (SIXTY_FOUR_KB * 2) + (THIRTY_TWO_KB * 1) + (FOUR_KB * 6), AT25DFX_BLOCK_SIZE_4KB);
+	if (STATUS_OK != status_val) {
+		add_state(CANCELED);
+		printf("store_file_packet: error erasing sector at address %d \r\n", firmware_starter_address + (SIXTY_FOUR_KB * 2) + (THIRTY_TWO_KB * 1) + (FOUR_KB * 3));
+		return;
+	}
+	at25dfx_chip_sleep(&at25dfx_chip);
 }
 
 
+static void check_set_firmware_metadata(fw_header_t firmware_header)
+{
+	printf("new firmware version: %d\r\n", firmware_header.fw_version);
+	printf("new firmware checksum: %d\r\n", firmware_header.checksum);
+	if (firmware_header.fw_version > FW_VERSION) {
+		clear_state(GET_REQUESTED);
+		clear_state(NOT_CHECKED);
+		add_state(UPDATE_AVAILABLE);
+		new_firmware_checksum = firmware_header.checksum;
+		start_download();
+		return;
+	} else {
+		clear_state(NOT_CHECKED & GET_REQUESTED);
+		add_state(UPDATE_NOT_AVAILABLE & COMPLETED);
+		return;
+	}
+}
+
 /**
- * \brief Store received packet to file.
- * \param[in] data Packet data.
- * \param[in] length Packet data length.
+ * puts the given packet in flash memory
+ * @param data   data to put in flash memory
+ * @param length size in bytes of data
  */
 static void store_file_packet(char *data, uint32_t length)
 {
@@ -152,155 +413,118 @@ static void store_file_packet(char *data, uint32_t length)
 		printf("store_file_packet: empty data.\r\n");
 		return;
 	}
-	enum status_code status_val;
-	if (!is_state_set(DOWNLOADING)) {
-		//Clear flash for max firmware size here
-		at25dfx_chip_wake(&at25dfx_chip);
-
-		//check if chip is there
-		if (at25dfx_chip_check_presence(&at25dfx_chip) != STATUS_OK) {
-			printf("store_file_packet: No flash chip.\r\n");
+	if (is_state_set(NOT_CHECKED)) {
+		if (6 != length) {
+			printf("store_file_packet [UPDATE_CHECK]: file [%d bytes] does not match header [%d bytes] size\r\n", length, sizeof(fw_header_t));
 			return;
 		}
-		//max fw size is ~252k = 3x 64kb sectors 1x 32kb sector 7x4kb sectors
-		//disable protection
-		for (int i = 0; i < FW_MAX_SIZE / SIXTY_FOUR_KB; i++) {
-			status_val = at25dfx_chip_set_sector_protect(&at25dfx_chip, SIXTY_FOUR_KB * i, false);
-			if (STATUS_OK != status_val) {
-				add_state(CANCELED);
-				printf("store_file_packet: error clearing sector protect at address %d \r\n", SIXTY_FOUR_KB * i);
-				return;
+		fw_header_t firmware_header;
+		memcpy(&firmware_header, data, 6);
+		check_set_firmware_metadata(firmware_header);
+		return;
+	} else if (is_state_set(UPDATE_AVAILABLE)) {
+		enum status_code status_val;
+		//hasn't started downloading yet, first packet. set values
+		if (!is_state_set(DOWNLOADING)) {
+			erase_firmware_in_flash(FW1_ADDR);
+			received_file_size = 0;
+			write_address = FW1_ADDR; //TODO: MAKE GENERIC SO CAN OTA CLI
+			buffer_cursor = 0;
+			total_bytes_written = 0;
+			crc32_calculate(0, sizeof(uint32_t), &crc_val);
+			add_state(DOWNLOADING);
+		}
+
+		if (data != NULL) {
+			int bytes_written = 0;
+			printf("length of packet: %d\r\n", length);
+			while (bytes_written < length) {
+				//TOOD: Check to see if should look at bytes_written + 256 or + 255
+				uint16_t num_bytes_to_buffer = (bytes_written + FLASH_ROW_SIZE - 1 < length) ? ((FLASH_ROW_SIZE) - buffer_cursor) : length - bytes_written;
+				printf("store_file_packet: num_bytes_to_buffer %d\r\n", num_bytes_to_buffer);
+				unsigned int data_cursor = data + bytes_written;
+				memcpy(write_row_buffer + buffer_cursor, data_cursor, num_bytes_to_buffer);
+				bytes_written += num_bytes_to_buffer;
+				buffer_cursor = buffer_cursor + num_bytes_to_buffer;
+				if(buffer_cursor == 0) {
+					buffer_cursor = (FLASH_ROW_SIZE - 1);
+				}
+				if (buffer_cursor == (FLASH_ROW_SIZE - 1)) {
+					status_val = at25dfx_chip_write_buffer(&at25dfx_chip, write_address, write_row_buffer, FLASH_ROW_SIZE);
+					if (STATUS_OK != status_val) {
+						add_state(CANCELED);
+						printf("store_file_packet: error writing row at address %d \r\n", write_address);
+						return;
+					}
+					buffer_cursor = 0;
+					write_address += FLASH_ROW_SIZE;
+					//printf("store_file_packet [dump]: %d. %s\r\n", global_test_counter++, write_row_buffer);
+					crc32_recalculate(write_row_buffer, FLASH_ROW_SIZE, &crc_val);
+					printf("%d. store_file_packet [crc_calc]: %d\r\n", global_test_counter++, crc_val);
+				}
 			}
-		}
-		//erase block (sets to FF's)
-		status_val = at25dfx_chip_erase_block(&at25dfx_chip, FW1_ADDR, SIXTY_FOUR_KB);
-		if (STATUS_OK != status_val) {
-			add_state(CANCELED);
-			printf("store_file_packet: error erasing sector at address %d \r\n", FW1_ADDR);
-			return;
-		}
-		status_val = at25dfx_chip_erase_block(&at25dfx_chip, FW1_ADDR + (0xFA00 * 1), SIXTY_FOUR_KB);
-		if (STATUS_OK != status_val) {
-			printf("store_file_packet: error erasing sector at address %d \r\n", FW1_ADDR + (0xFA00 * 1));
-			return;
-		}
-		status_val = at25dfx_chip_erase_block(&at25dfx_chip, FW1_ADDR + (0xFA00 * 2), SIXTY_FOUR_KB);
-		if (STATUS_OK != status_val) {
-			add_state(CANCELED);
-			printf("store_file_packet: error erasing sector at address %d \r\n", FW1_ADDR + (0xFA00 * 2));
-			return;
-		}
-		status_val = at25dfx_chip_erase_block(&at25dfx_chip, FW1_ADDR + (0xFA00 * 3) + (0x7D00 * 0), THIRTY_TWO_KB);
-		if (STATUS_OK != status_val) {
-			add_state(CANCELED);
-			printf("store_file_packet: error erasing sector at address %d \r\n", FW1_ADDR + (0xFA00 * 3) + (0x7D00 * 0));
-			return;
-		}
-		status_val = at25dfx_chip_erase_block(&at25dfx_chip, FW1_ADDR + (0xFA00 * 2) + (0x7D00 * 1) + (0xFA0 * 0), FOUR_KB);
-		if (STATUS_OK != status_val) {
-			add_state(CANCELED);
-			printf("store_file_packet: error erasing sector at address %d \r\n", FW1_ADDR + (0xFA00 * 2) + (0x7D00 * 1) + (0xFA0 * 0));
-			return;
-		}
-		status_val = at25dfx_chip_erase_block(&at25dfx_chip, FW1_ADDR + (0xFA00 * 2) + (0x7D00 * 1) + (0xFA0 * 1), FOUR_KB);
-		if (STATUS_OK != status_val) {
-			add_state(CANCELED);
-			printf("store_file_packet: error erasing sector at address %d \r\n", FW1_ADDR + (0xFA00 * 2) + (0x7D00 * 1) + (0xFA0 * 1));
-			return;
-		}
-		status_val = at25dfx_chip_erase_block(&at25dfx_chip, FW1_ADDR + (0xFA00 * 2) + (0x7D00 * 1) + (0xFA0 * 2), FOUR_KB);
-		if (STATUS_OK != status_val) {
-			add_state(CANCELED);
-			printf("store_file_packet: error erasing sector at address %d \r\n", FW1_ADDR + (0xFA00 * 2) + (0x7D00 * 1) + (0xFA0 * 2));
-			return;
-		}
-		status_val = at25dfx_chip_erase_block(&at25dfx_chip, FW1_ADDR + (0xFA00 * 2) + (0x7D00 * 1) + (0xFA0 * 3), FOUR_KB);
-		if (STATUS_OK != status_val) {
-			add_state(CANCELED);
-			printf("store_file_packet: error erasing sector at address %d \r\n", FW1_ADDR + (0xFA00 * 2) + (0x7D00 * 1) + (0xFA0 * 3));
-			return;
-		}
-		status_val = at25dfx_chip_erase_block(&at25dfx_chip, FW1_ADDR + (0xFA00 * 2) + (0x7D00 * 1) + (0xFA0 * 4), FOUR_KB);
-		if (STATUS_OK != status_val) {
-			add_state(CANCELED);
-			printf("store_file_packet: error erasing sector at address %d \r\n", FW1_ADDR + (0xFA00 * 2) + (0x7D00 * 1) + (0xFA0 * 4));
-			return;
-		}
-		status_val = at25dfx_chip_erase_block(&at25dfx_chip, FW1_ADDR + (0xFA00 * 2) + (0x7D00 * 1) + (0xFA0 * 5), FOUR_KB);
-		if (STATUS_OK != status_val) {
-			add_state(CANCELED);
-			printf("store_file_packet: error erasing sector at address %d \r\n", FW1_ADDR + (0xFA00 * 2) + (0x7D00 * 1) + (0xFA0 * 5));
-			return;
-		}
-		status_val = at25dfx_chip_erase_block(&at25dfx_chip, FW1_ADDR + (0xFA00 * 2) + (0x7D00 * 1) + (0xFA0 * 6), FOUR_KB);
-		if (STATUS_OK != status_val) {
-			add_state(CANCELED);
-			printf("store_file_packet: error erasing sector at address %d \r\n", FW1_ADDR + (0xFA00 * 2) + (0x7D00 * 1) + (0xFA0 * 3));
-			return;
-		}
-		received_file_size = 0;
-		write_address = FW1_ADDR;
-		buffer_cursor = 0;
-		total_bytes_written = 0;
-		add_state(DOWNLOADING);
-	}
 
-	if (data != NULL) {
-		//WRITE TO FLASH HERE
-		int bytes_written = 0;
-		printf("length of packet: %d\r\n", length);
-		while (bytes_written < length) {
-//			printf("buffer_cursor val: %d\r\n", buffer_cursor);
-			//TODO: remove magic numbers (ie 255)
-			uint8_t num_bytes_to_buffer = (bytes_written+255 < length) ? (255 - buffer_cursor) : length-bytes_written;
-			unsigned int data_cursor = data + bytes_written;
-			memcpy(write_row_buffer + buffer_cursor, data_cursor, num_bytes_to_buffer);
-			bytes_written += num_bytes_to_buffer;
-			buffer_cursor = buffer_cursor + num_bytes_to_buffer;
-			if (buffer_cursor == 255) {
-				status_val = at25dfx_chip_write_buffer(&at25dfx_chip, write_address, write_row_buffer, 255);
+			total_bytes_written += bytes_written;
+			received_file_size += length;
+			printf("store_file_packet: received[%lu], file size[%lu]\r\n", (unsigned long)received_file_size, (unsigned long)http_file_size);
+			//		printf("store_file_packet: wrote %d bytes and written %d bytes total\r\n", bytes_written, total_bytes_written);
+			if (received_file_size >= http_file_size) {
+				printf("store_file_packet: leftover write_buffer %s\r\n", write_row_buffer);
+				status_val = at25dfx_chip_write_buffer(&at25dfx_chip, write_address, write_row_buffer, buffer_cursor);
 				if (STATUS_OK != status_val) {
 					add_state(CANCELED);
 					printf("store_file_packet: error writing row at address %d \r\n", write_address);
 					return;
 				}
-				buffer_cursor = 0;
-				write_address += 255;
-			}
-		}
-		total_bytes_written += bytes_written;
-		received_file_size += length;
-		printf("store_file_packet: received[%lu], file size[%lu]\r\n", (unsigned long)received_file_size, (unsigned long)http_file_size);
-//		printf("store_file_packet: wrote %d bytes and written %d bytes total\r\n", bytes_written, total_bytes_written);
-		if (received_file_size >= http_file_size) {
-			status_val = at25dfx_chip_write_buffer(&at25dfx_chip, write_address, write_row_buffer, buffer_cursor);
-			if (STATUS_OK != status_val) {
-				add_state(CANCELED);
-				printf("store_file_packet: error writing row at address %d \r\n", write_address);
+				crc32_recalculate(write_row_buffer, buffer_cursor, &crc_val);
+				printf("store_file_packet: buffer_cursor size: %d\r\n", buffer_cursor);
+				printf("store_file_packet: calculated crc32 val from packets: %d\r\n", crc_val);
+				bytes_written += buffer_cursor;
+				printf("store_file_packet: file downloaded successfully.\r\n");
+				printf("store_file_packet: received_file_size: %d\r\n", received_file_size);
+				printf("store_file_packet: num bytes written to flash memory: %d\r\n", total_bytes_written);
+				if (verify_flash(crc_val)) {
+					printf("store_file_packet: flash successfully written with no errors");
+				} else {
+					printf("store_file_packet: flash corrupted.\r\n");
+					add_state(CANCELED);
+					return;
+				}
+				if (crc_val != new_firmware_checksum) {
+					printf("store_file_packet: file checksums don't match.\r\n Expected checksum %d\r\n Received checksum %d\r\n", new_firmware_checksum, crc_val);
+					add_state(CANCELED);
+					return;
+				} else {
+					update_boot_status();
+					add_state(COMPLETED);
+				}
 				return;
 			}
-			bytes_written += buffer_cursor;
-			printf("store_file_packet: file downloaded successfully.\r\n");
-			printf("received_file_size: %d\r\n", received_file_size);
-//			printf("num bytes written to flash memory: %d\r\n", total_bytes_written);
-			add_state(COMPLETED);
-			return;
 		}
+	} else {
+		//TODO: shouldn't get here
 	}
 }
 
+
+/**
+ * configure the software timer used as error check for http timeout
+ */
 static void configure_timer(void)
 {
 	struct sw_timer_config swt_conf;
+
 	sw_timer_get_config_defaults(&swt_conf);
 
 	sw_timer_init(&swt_module_inst, &swt_conf);
 	sw_timer_enable(&swt_module_inst);
 }
 
+/**
+ * sets up default flash configuration for AT25DF081A-SSH-T
+ */
 static void configure_flash(void)
 {
-	/// chip component id: AT25DF081A-SSH-T
 	struct at25dfx_chip_config at_chip_config;
 	struct spi_config at25dfx_spi_config;
 
@@ -320,6 +544,9 @@ static void configure_flash(void)
 	add_state(STORAGE_READY);
 }
 
+/**
+ * configure rx/tx usart for 115200 baud on usb pinout
+ */
 static void configure_usart(void)
 {
 	struct usart_config config_usart;
@@ -332,12 +559,17 @@ static void configure_usart(void)
 	config_usart.pinmux_pad2 = PINMUX_PB10D_SERCOM4_PAD2;
 	config_usart.pinmux_pad3 = PINMUX_PB11D_SERCOM4_PAD3;
 
-
 	stdio_serial_init(&usart_instance, SERCOM4, &config_usart);
 
 	usart_enable(&usart_instance);
 }
 
+/**
+ * callback for http_client on state change
+ * @param module_inst instantiated http_client struct
+ * @param evt         event change (enum)
+ * @param data        data from http_client
+ */
 static void http_client_callback(struct http_client_module *module_inst, int evt, union http_client_data *data)
 {
 	switch (evt) {
@@ -361,16 +593,15 @@ static void http_client_callback(struct http_client_module *module_inst, int evt
 			add_state(CANCELED);
 			return;
 		}
-		if (data->recv_response.content_length <= MTU_HTTP) {
+		if (data->recv_response.content_length <= MTU_HTTP)
 			store_file_packet(data->recv_response.content, data->recv_response.content_length);
-			add_state(COMPLETED);
-		}
+		//add_state(COMPLETED);
 		break;
 	}
 	case HTTP_CLIENT_CALLBACK_RECV_CHUNKED_DATA: {
 		store_file_packet(data->recv_chunked_data.data, data->recv_chunked_data.length);
-		if (data->recv_chunked_data.is_complete)
-			add_state(COMPLETED);
+		//if (data->recv_chunked_data.is_complete)
+		//add_state(COMPLETED);
 		break;
 	}
 	case HTTP_CLIENT_CALLBACK_DISCONNECTED: {
@@ -398,6 +629,9 @@ static void http_client_callback(struct http_client_module *module_inst, int evt
 	}
 }
 
+/**
+ * http_client configuration setup
+ */
 void configure_http_client(void)
 {
 	struct http_client_config httpc_conf;
@@ -417,48 +651,21 @@ void configure_http_client(void)
 	http_client_register_callback(&http_client_module_inst, http_client_callback);
 }
 
+/**
+ * TCP socket callback that re-routes to http_client
+ * @param sock    open socket
+ * @param evt     event change that pulled callback
+ * @param evt_msg event data
+ */
 void socket_callback(SOCKET sock, uint8_t evt, void *evt_msg)
 {
 	http_client_socket_event_handler(sock, evt, evt_msg);
-	/*  OLD CODE FOR SIMPLE TSP CONNECTION
-	 * switch (evt) {
-	 * case SOCKET_MSG_CONNECT: {
-	 *      tstrSocketConnectMsg *socket_connect_msg = (tstrSocketConnectMsg *)evt_msg;
-	 *      //check if theres a message and ensure theres not an error
-	 *      if (socket_connect_msg && socket_connect_msg->s8Error >= 0) {
-	 *              printf("socket_callback [SOCKET_MSG_CONNECT]: successfully connected.\r\n");
-	 *              send(tcp_client_socket, test_msg, sizeof(test_msg), 0);
-	 *      } else {
-	 *              printf("socket_callback [SOCKET_MSG_CONNECT]: error trying to connect.\r\n");
-	 *              close(tcp_client_socket);
-	 *              tcp_client_socket = -1;
-	 *      }
-	 *      break;
-	 * }
-	 * case SOCKET_MSG_SEND: {
-	 *      printf("socket_callback [SOCKET_MSG_SEND]: successfully sent message.");
-	 *      recv(tcp_client_socket, test_receive_buffer, sizeof(test_receive_buffer), 0);
-	 *      break;
-	 * }
-	 * case SOCKET_MSG_RECV: {
-	 *      tstrSocketRecvMsg *socket_rcv_message = (tstrSocketRecvMsg *)evt_msg;
-	 *      if (socket_rcv_message && socket_rcv_message->s16BufferSize > 0) {
-	 *              printf("socket_callback [SOCKET_MSG_RECV]: sucessfully received message.\r\n");
-	 *              printf("TCP Client Test Complete!\r\n");
-	 *      } else {
-	 *              printf("socket_callback: error in receiving message.\r\n");
-	 *              close(tcp_client_socket);
-	 *              tcp_client_socket = -1;
-	 *      }
-	 *      break;
-	 * }
-	 * default: {
-	 *      printf("socket_callback [default]: ERROR received evt %d\r\n", evt);
-	 *      break;
-	 * }
-	 * } */
 }
-
+/**
+ * callback to resolve http address to an IP address
+ * @param pu8DomainName unknown??
+ * @param u32ServerIP   unknown??
+ */
 void resolve_cb(uint8_t *pu8DomainName, uint32_t u32ServerIP)
 {
 	printf("resolve_cb: %s IP address is %d.%d.%d.%d\r\n\r\n", pu8DomainName,
@@ -467,6 +674,11 @@ void resolve_cb(uint8_t *pu8DomainName, uint32_t u32ServerIP)
 	http_client_socket_resolve_handler(pu8DomainName, u32ServerIP);
 }
 
+/**
+ * Callback for wifi state changes
+ * @param evt     event change
+ * @param evt_msg information about wifi state change
+ */
 void wifi_callback(uint8_t evt, void *evt_msg)
 {
 	switch (evt) {
@@ -508,6 +720,7 @@ int main()
 {
 //NOTE: HTTP_DOWNLOADER does not actually run just a heads up
 	system_init();
+	init_state();
 	//system_interrupt_enable_global();
 	delay_init();
 	configure_usart();
@@ -524,7 +737,6 @@ int main()
 		printf("failed to initialize wifi parameters\r\n");
 		return 0;
 	}
-
 
 	socketInit();
 	registerSocketCallback(socket_callback, resolve_cb);
