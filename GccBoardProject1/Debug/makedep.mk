@@ -2,6 +2,22 @@
 # Automatically-generated file. Do not edit or delete the file
 ################################################################################
 
+src\ASF\common2\components\memory\serial_flash\at25dfx\at25dfx.c
+
+src\ASF\common\services\crc32\crc32.c
+
+src\ASF\sam0\drivers\sercom\spi\spi.c
+
+src\ASF\sam0\drivers\sercom\spi\spi_interrupt.c
+
+src\HDC1080\hdc1080.c
+
+src\TSL2561\TSL2561.c
+
+src\ASF\common2\services\delay\sam0\systick_counter.c
+
+src\ASF\sam0\components\sensor\at30tse75x\at30tse75x.c
+
 src\ASF\sam0\drivers\adc\adc_sam_d_r_h\adc.c
 
 src\ASF\sam0\drivers\sercom\i2c\i2c_sam0\i2c_master.c
@@ -45,6 +61,8 @@ src\ASF\sam0\utils\cmsis\samd21\source\gcc\startup_samd21.c
 src\ASF\sam0\utils\cmsis\samd21\source\system_samd21.c
 
 src\ASF\sam0\utils\syscalls\gcc\syscalls.c
+
+src\handler.c
 
 src\main.c
 
