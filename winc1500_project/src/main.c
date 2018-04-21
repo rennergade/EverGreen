@@ -9,43 +9,27 @@
 #include "driver/include/m2m_wifi.h"
 #include "socket/include/socket.h"
 #include "iot/http/http_client.h"
+#include "component-configurations.h"
+#include "memory-app-definitions.h"
+
+//TODO: handle checked version being <= current version
+//TODO: add size of fw image to header
+//TODO: Need to write a header for nvm to pull
+//TODO: Check if size of image > max firmware size
 
 #define FW_VERSION 0                       /// Current firmware version
+#define DEBUG_LEVEL 0
 
-//UART Macros
-#define BAUD_RATE 115200
-
-//Memory Location Macros
-#define FW1_ERASE_ADDR 0x000000 /// Sector to start erasing at for 64kb
-#define FW2_ERASE_ADDR 0x3FFFC /// Sector to start erasing at for 64kb
-#define FW1_HEADER_ADDR 0x001000                /// Header for current or new firmware
-#define FW2_HEADER_ADDR 0x040000                /// Header for safe CLI
-#define FW1_ADDR 0x002000                       /// New/current firmware
-#define FW2_ADDR 0x041000                       /// CLI firmware
-#define FW_MAX_SIZE 0x3DFFC                    /// Max size of each firmware
-#define BOOT_STATUS_ADDR 0x3FC0                 /// Boot status address in internal NVM
-#define SIXTY_FOUR_KB 0x00FFFF
-#define THIRTY_TWO_KB SIXTY_FOUR_KB / 2
-#define FOUR_KB THIRTY_TWO_KB / 8
-
-//Flash Macros
-#define FLASH_ROW_SIZE 256              /// number of bytes per row in flash memory
-#define AT25DFX_SPI SERCOM1             /// sercom for external flash
-#define AT25DFX_MEM_TYPE AT25DFX_081A   /// what chip is it
-#define AT25DFX_SPI_PINMUX_SETTING SPI_SIGNAL_MUX_SETTING_E
-#define AT25DFX_SPI_PINMUX_PAD0 PINMUX_PA16C_SERCOM1_PAD0
-#define AT25DFX_SPI_PINMUX_PAD1 PINMUX_UNUSED
-#define AT25DFX_SPI_PINMUX_PAD2 PINMUX_PA18C_SERCOM1_PAD2
-#define AT25DFX_SPI_PINMUX_PAD3 PINMUX_PA19C_SERCOM1_PAD3
-#define AT25DFX_CS PIN_PA07
-#define AT25DFX_CLOCK_SPEED 1000000 /// spi clock speed
+#if DEBUG_LEVEL >= 3
+#include "debug.h"
+#endif
 
 //WiFI Macros
 #define SSID "AirPennNet-Device"                                                        /// SSID to connect to
 #define AUTH_TYPE M2M_WIFI_SEC_WPA_PSK                                                  /// authentication type
 #define WIFI_PASSWORD "penn1740wifi"                                                    /// password
-#define FW_HEADER_ADDRESS "http://www.seas.upenn.edu/~warcher/test_metadata.bin"        /// url for header address
-#define FIRMWARE_ADDRESS "http://www.seas.upenn.edu/~warcher/"                          /// url for firmware address download
+#define FW_HEADER_ADDRESS "http://www.seas.upenn.edu/~warcher/ese516/metadata.bin"      /// url for header address
+#define FIRMWARE_ADDRESS "http://www.seas.upenn.edu/~warcher/ese516/test-firmware.bin"  /// url for firmware address download
 #define MTU_HTTP 1500                                                                   /// maximum transmission unit (MTU) or maximum packet size for HTTP @details limited by Ethernet
 #define IPV4_BYTE(val, index) ((val >> (index * 8)) & 0xFF)                             /// macro function for bit masking IPV4 addressing
 
@@ -67,17 +51,6 @@ typedef enum {
 	UPDATE_NOT_AVAILABLE	= 0x100 //Update not available
 } download_state;
 
-typedef struct fw_header {
-	uint16_t	fw_version;     /// firmware version
-	uint32_t	checksum;       /// precomputed checksum value to verify
-} fw_header_t;
-
-typedef struct fw_status {
-	uint8_t		signature[3];           ///set values that confirm bootloader is still in tact
-	uint8_t		new_image_ready;        /// are we ready to write a new image?
-	uint16_t	bl_version;
-} fw_status_t;
-
 //Flash global vars
 struct spi_module at25dfx_spi;
 struct at25dfx_chip_module at25dfx_chip;
@@ -85,16 +58,19 @@ struct usart_module usart_instance;
 uint8_t write_row_buffer[FLASH_ROW_SIZE];       /// buffered write so only write 256 bytes at a time
 uint8_t buffer_cursor;                          /// location to write to in row buffer
 unsigned int write_address;                     /// current write address in flash memory
-crc32_t crc_val;
+crc32_t crc_val = 0;
 
 struct http_client_module http_client_module_inst;
 static uint32_t http_file_size;
 static uint32_t received_file_size = 0; /// number of bytes successfully written to memory
 unsigned int total_bytes_written;
 download_state down_state;
+uint16_t new_firmware_version = 0;
 uint32_t new_firmware_checksum = 0;
+
 struct sw_timer_module swt_module_inst;
-uint32_t global_test_counter = 0;
+
+uint32_t global_test_counter = 0; /// Test counter for printing debug statements
 
 
 /**
@@ -139,37 +115,6 @@ static inline bool is_state_set(download_state mask)
 	return (down_state & mask) != 0;
 }
 
-
-static void flash_dump(int starting_address, int num_bytes)
-{
-	//Clear flash for max firmware size here
-	at25dfx_chip_wake(&at25dfx_chip);
-
-	//check if chip is there
-	if (at25dfx_chip_check_presence(&at25dfx_chip) != STATUS_OK) {
-		printf("flash_Dump: No flash chip.\r\n");
-		return;
-	}
-	enum status_code read_status;
-	for (int i = 0; i < num_bytes / FLASH_ROW_SIZE; i++) {
-		read_status = at25dfx_chip_read_buffer(&at25dfx_chip, starting_address + (i * FLASH_ROW_SIZE), write_row_buffer, FLASH_ROW_SIZE);
-		if (STATUS_OK != read_status) {
-			printf("verify_flash: error trying to read external flash. %d", read_status);
-			return false;
-		}
-		printf("flash_dump: %d. %s\r\n", i, write_row_buffer);
-	}
-	int remaining_bytes = num_bytes % FLASH_ROW_SIZE;
-	read_status = at25dfx_chip_read_buffer(&at25dfx_chip, starting_address + num_bytes - remaining_bytes, write_row_buffer, remaining_bytes);
-	if (STATUS_OK != read_status) {
-		printf("verify_flash: error trying to read external flash. %d", read_status);
-		return false;
-	}
-	printf("flash_dump: %s\r\n", write_row_buffer);
-
-	at25dfx_chip_sleep(&at25dfx_chip);
-}
-
 /**
  * ensures proper state before GET Request
  */
@@ -211,6 +156,29 @@ static void start_download(void)
 	}
 }
 
+static void write_firmware_metadata(uint32_t firmware_address, uint16_t firmware_version, uint32_t firmware_checksum, uint32_t fw_size)
+{
+	if (FW1_ADDR == firmware_address)
+		firmware_address = FW1_HEADER_ADDR;
+	else if (FW2_ADDR == firmware_address)
+		firmware_address = FW2_HEADER_ADDR;
+	else
+		//TODO: throw error
+		return;
+
+	//NOTE: existing firmware information has already been erased when chip was being prepped
+	//NOTE: this is to prevent metadata corruption or a mismatch in the case of failure
+
+	fw_header_t new_firmware_header = { .fw_version = firmware_version, .checksum = firmware_checksum, .size = fw_size };
+	uint8_t write_buffer[FLASH_ROW_SIZE];
+	memcpy(write_buffer, &new_firmware_header, sizeof(fw_header_t));
+	enum status_code write_code = at25dfx_chip_write_buffer(&at25dfx_chip, firmware_address, write_buffer, FLASH_ROW_SIZE);
+	if (STATUS_OK != write_code) {
+		printf("write_firmware_metadata: could not write to flash!\r\n");
+		return;
+	}
+}
+
 /**
  * update the boot status struct in internal memory
  */
@@ -222,8 +190,12 @@ static void update_boot_status()
 	uint16_t num_pages = nvm_information.nvm_number_of_pages;
 	int page_to_write = BOOT_STATUS_ADDR / NVMCTRL_PAGE_SIZE;
 	int row_to_erase = page_to_write / NVMCTRL_ROW_PAGES;
+	printf("update_boot_status: row_to_erase: %d\r\n", row_to_erase);
+	printf("update_boot_status: page_to_write: %d\r\n", page_to_write);
 	uint8_t page_offset = page_to_write - (row_to_erase * NVMCTRL_ROW_PAGES);
 	int row_address = row_to_erase * NVMCTRL_ROW_SIZE;
+	printf("update_boot_status: row_address: %d\r\n", row_address);
+	printf("update_boot_status: page_offset: %d\r\n", page_offset);
 	uint8_t row_buffer[NVMCTRL_ROW_SIZE];
 	enum status_code read_nvm_code;
 	for (int i = 0; i < NVMCTRL_ROW_PAGES; i++) {
@@ -232,16 +204,20 @@ static void update_boot_status()
 			read_nvm_code = nvm_read_buffer(row_address + offset, row_buffer + offset, NVMCTRL_PAGE_SIZE);
 		while (STATUS_OK != read_nvm_code);
 	}
-
+	printf("row: %04x\r\n", row_buffer);
 	do
 		read_nvm_code = nvm_erase_row(row_address);
 	while (STATUS_OK != read_nvm_code);
 
 	fw_status_t write_boot;
-	memcpy(&write_boot, BOOT_STATUS_ADDR, sizeof(fw_status_t));
+	memcpy(&write_boot, row_buffer + page_offset * NVMCTRL_PAGE_SIZE, sizeof(fw_status_t));
 	write_boot.new_image_ready = 1;
+	printf("update_boot_status write_boot.signature: %02x\r\n", write_boot.signature[0]);
+	printf("update_boot_status write_boot.signature: %02x\r\n", write_boot.signature[1]);
+	printf("update_boot_status write_boot.signature: %02x\r\n", write_boot.signature[2]);
 	memcpy(row_buffer + (page_offset * NVMCTRL_PAGE_SIZE), &write_boot, sizeof(fw_status_t));
 
+	memcpy(row_buffer + (page_offset * NVMCTRL_PAGE_SIZE), &write_boot, sizeof(fw_status_t));
 	for (int i = 0; i < NVMCTRL_ROW_PAGES; i++) {
 		int offset = i * NVMCTRL_PAGE_SIZE;
 		do
@@ -258,10 +234,9 @@ static void update_boot_status()
 bool verify_flash(crc32_t known_checksum)
 {
 	//TODO: write this
-	crc32_t flash_checksum;
+	crc32_t flash_checksum = 0;
 
-	crc32_calculate(0, sizeof(uint32_t), &flash_checksum);
-
+	printf("starting seed: %04x\r\n", flash_checksum);
 	enum status_code read_status;
 	for (int i = 0; i < total_bytes_written / FLASH_ROW_SIZE; i++) {
 		read_status = at25dfx_chip_read_buffer(&at25dfx_chip, FW1_ADDR + (i * FLASH_ROW_SIZE), write_row_buffer, FLASH_ROW_SIZE);
@@ -270,7 +245,10 @@ bool verify_flash(crc32_t known_checksum)
 			return false;
 		}
 		//printf("verify_flash [flash_dump]: %d. %s\r\n", i, write_row_buffer);
-		crc32_recalculate(write_row_buffer, FLASH_ROW_SIZE, &flash_checksum);
+		if (!flash_checksum)
+			crc32_calculate(write_row_buffer, FLASH_ROW_SIZE, &flash_checksum);
+		else
+			crc32_recalculate(write_row_buffer, FLASH_ROW_SIZE, &flash_checksum);
 		printf("%d. verify_flash: crc_val: %d\r\n", i, flash_checksum);
 	}
 	int remaining_bytes = total_bytes_written % FLASH_ROW_SIZE;
@@ -280,20 +258,20 @@ bool verify_flash(crc32_t known_checksum)
 	printf("verify_flash: calculated crc32 val: %d\r\n", flash_checksum);
 	return flash_checksum == known_checksum;
 }
+
 /**
  * erase given firmware in flash Memory
  * @param firmware_starter_address starting address of firmware
  */
 static void erase_firmware_in_flash(uint32_t firmware_starter_address)
 {
-	if(firmware_starter_address == FW1_ADDR) {
+	if (firmware_starter_address == FW1_ADDR)
 		firmware_starter_address = FW1_ERASE_ADDR;
-	} else if (firmware_starter_address == FW2_ADDR) {
+	else if (firmware_starter_address == FW2_ADDR)
 		firmware_starter_address = FW2_ERASE_ADDR;
-	} else {
+	else
 		//TODO: Throw error
 		return;
-	}
 	printf("FW1_ERASE_ADDR: %d\r\n", firmware_starter_address);
 	//Clear flash for max firmware size here
 	at25dfx_chip_wake(&at25dfx_chip);
@@ -383,16 +361,17 @@ static void erase_firmware_in_flash(uint32_t firmware_starter_address)
 	at25dfx_chip_sleep(&at25dfx_chip);
 }
 
-
+//TODO: write documentation on this
 static void check_set_firmware_metadata(fw_header_t firmware_header)
 {
 	printf("new firmware version: %d\r\n", firmware_header.fw_version);
-	printf("new firmware checksum: %d\r\n", firmware_header.checksum);
+	printf("new firmware checksum: %04x\r\n", firmware_header.checksum);
 	if (firmware_header.fw_version > FW_VERSION) {
 		clear_state(GET_REQUESTED);
 		clear_state(NOT_CHECKED);
 		add_state(UPDATE_AVAILABLE);
 		new_firmware_checksum = firmware_header.checksum;
+		new_firmware_version = firmware_header.fw_version;
 		start_download();
 		return;
 	} else {
@@ -419,7 +398,8 @@ static void store_file_packet(char *data, uint32_t length)
 			return;
 		}
 		fw_header_t firmware_header;
-		memcpy(&firmware_header, data, 6);
+		memcpy(&firmware_header.fw_version, data, 2);
+		memcpy(&firmware_header.checksum, data + 2, 4);
 		check_set_firmware_metadata(firmware_header);
 		return;
 	} else if (is_state_set(UPDATE_AVAILABLE)) {
@@ -431,24 +411,23 @@ static void store_file_packet(char *data, uint32_t length)
 			write_address = FW1_ADDR; //TODO: MAKE GENERIC SO CAN OTA CLI
 			buffer_cursor = 0;
 			total_bytes_written = 0;
-			crc32_calculate(0, sizeof(uint32_t), &crc_val);
+			printf("starting val: ", crc_val);
 			add_state(DOWNLOADING);
 		}
 
 		if (data != NULL) {
 			int bytes_written = 0;
-			printf("length of packet: %d\r\n", length);
+			//printf("length of packet: %d\r\n", length);
 			while (bytes_written < length) {
 				//TOOD: Check to see if should look at bytes_written + 256 or + 255
-				uint16_t num_bytes_to_buffer = (bytes_written + FLASH_ROW_SIZE - 1 < length) ? ((FLASH_ROW_SIZE) - buffer_cursor) : length - bytes_written;
-				printf("store_file_packet: num_bytes_to_buffer %d\r\n", num_bytes_to_buffer);
+				uint16_t num_bytes_to_buffer = (bytes_written + FLASH_ROW_SIZE - 1 < length) ? ((FLASH_ROW_SIZE)-buffer_cursor) : length - bytes_written;
+				//printf("store_file_packet: num_bytes_to_buffer %d\r\n", num_bytes_to_buffer);
 				unsigned int data_cursor = data + bytes_written;
 				memcpy(write_row_buffer + buffer_cursor, data_cursor, num_bytes_to_buffer);
 				bytes_written += num_bytes_to_buffer;
 				buffer_cursor = buffer_cursor + num_bytes_to_buffer;
-				if(buffer_cursor == 0) {
+				if (buffer_cursor == 0)
 					buffer_cursor = (FLASH_ROW_SIZE - 1);
-				}
 				if (buffer_cursor == (FLASH_ROW_SIZE - 1)) {
 					status_val = at25dfx_chip_write_buffer(&at25dfx_chip, write_address, write_row_buffer, FLASH_ROW_SIZE);
 					if (STATUS_OK != status_val) {
@@ -458,18 +437,29 @@ static void store_file_packet(char *data, uint32_t length)
 					}
 					buffer_cursor = 0;
 					write_address += FLASH_ROW_SIZE;
-					//printf("store_file_packet [dump]: %d. %s\r\n", global_test_counter++, write_row_buffer);
-					crc32_recalculate(write_row_buffer, FLASH_ROW_SIZE, &crc_val);
+#if DEBUG_LEVEL >= 3
+					if (!global_test_counter)
+						hexDump("hexDump", write_row_buffer, 256);
+
+#endif
+					if (!crc_val)
+						crc32_calculate(write_row_buffer, FLASH_ROW_SIZE, &crc_val);
+					else
+						crc32_recalculate(write_row_buffer, FLASH_ROW_SIZE, &crc_val);
+
+#if DEBUG_LEVEL >= 2
 					printf("%d. store_file_packet [crc_calc]: %d\r\n", global_test_counter++, crc_val);
+#endif
 				}
 			}
 
 			total_bytes_written += bytes_written;
 			received_file_size += length;
 			printf("store_file_packet: received[%lu], file size[%lu]\r\n", (unsigned long)received_file_size, (unsigned long)http_file_size);
-			//		printf("store_file_packet: wrote %d bytes and written %d bytes total\r\n", bytes_written, total_bytes_written);
 			if (received_file_size >= http_file_size) {
+#if DEBUG_LEVEL >= 2
 				printf("store_file_packet: leftover write_buffer %s\r\n", write_row_buffer);
+#endif
 				status_val = at25dfx_chip_write_buffer(&at25dfx_chip, write_address, write_row_buffer, buffer_cursor);
 				if (STATUS_OK != status_val) {
 					add_state(CANCELED);
@@ -477,25 +467,30 @@ static void store_file_packet(char *data, uint32_t length)
 					return;
 				}
 				crc32_recalculate(write_row_buffer, buffer_cursor, &crc_val);
+#if DEBUG_LEVEL >= 1
 				printf("store_file_packet: buffer_cursor size: %d\r\n", buffer_cursor);
 				printf("store_file_packet: calculated crc32 val from packets: %d\r\n", crc_val);
+#endif
 				bytes_written += buffer_cursor;
 				printf("store_file_packet: file downloaded successfully.\r\n");
+#if DEBUG_LEVEL >= 1
 				printf("store_file_packet: received_file_size: %d\r\n", received_file_size);
 				printf("store_file_packet: num bytes written to flash memory: %d\r\n", total_bytes_written);
+#endif
 				if (verify_flash(crc_val)) {
-					printf("store_file_packet: flash successfully written with no errors");
+					printf("store_file_packet: flash successfully written with no errors\r\n");
 				} else {
 					printf("store_file_packet: flash corrupted.\r\n");
 					add_state(CANCELED);
 					return;
 				}
 				if (crc_val != new_firmware_checksum) {
-					printf("store_file_packet: file checksums don't match.\r\n Expected checksum %d\r\n Received checksum %d\r\n", new_firmware_checksum, crc_val);
+					printf("store_file_packet: file checksums don't match.\r\n Expected checksum %04x\r\n Received checksum %04x\r\n", new_firmware_checksum, crc_val);
 					add_state(CANCELED);
 					return;
 				} else {
 					update_boot_status();
+					write_firmware_metadata(FW1_ADDR, new_firmware_version, new_firmware_checksum, received_file_size);
 					add_state(COMPLETED);
 				}
 				return;
@@ -504,64 +499,6 @@ static void store_file_packet(char *data, uint32_t length)
 	} else {
 		//TODO: shouldn't get here
 	}
-}
-
-
-/**
- * configure the software timer used as error check for http timeout
- */
-static void configure_timer(void)
-{
-	struct sw_timer_config swt_conf;
-
-	sw_timer_get_config_defaults(&swt_conf);
-
-	sw_timer_init(&swt_module_inst, &swt_conf);
-	sw_timer_enable(&swt_module_inst);
-}
-
-/**
- * sets up default flash configuration for AT25DF081A-SSH-T
- */
-static void configure_flash(void)
-{
-	struct at25dfx_chip_config at_chip_config;
-	struct spi_config at25dfx_spi_config;
-
-	at25dfx_spi_get_config_defaults(&at25dfx_spi_config);
-	at25dfx_spi_config.mode_specific.master.baudrate = AT25DFX_CLOCK_SPEED;
-	at25dfx_spi_config.mux_setting = AT25DFX_SPI_PINMUX_SETTING;
-	at25dfx_spi_config.pinmux_pad0 = AT25DFX_SPI_PINMUX_PAD0;
-	at25dfx_spi_config.pinmux_pad1 = AT25DFX_SPI_PINMUX_PAD1;
-	at25dfx_spi_config.pinmux_pad2 = AT25DFX_SPI_PINMUX_PAD2;
-	at25dfx_spi_config.pinmux_pad3 = AT25DFX_SPI_PINMUX_PAD3;
-	spi_init(&at25dfx_spi, AT25DFX_SPI, &at25dfx_spi_config);
-	spi_enable(&at25dfx_spi);
-
-	at_chip_config.type = AT25DFX_MEM_TYPE;
-	at_chip_config.cs_pin = AT25DFX_CS;
-	at25dfx_chip_init(&at25dfx_chip, &at25dfx_spi, &at_chip_config);
-	add_state(STORAGE_READY);
-}
-
-/**
- * configure rx/tx usart for 115200 baud on usb pinout
- */
-static void configure_usart(void)
-{
-	struct usart_config config_usart;
-
-	usart_get_config_defaults(&config_usart);
-	config_usart.baudrate = 115200;
-	config_usart.mux_setting = USART_RX_3_TX_2_XCK_3;
-	config_usart.pinmux_pad0 = PINMUX_UNUSED;
-	config_usart.pinmux_pad1 = PINMUX_UNUSED;
-	config_usart.pinmux_pad2 = PINMUX_PB10D_SERCOM4_PAD2;
-	config_usart.pinmux_pad3 = PINMUX_PB11D_SERCOM4_PAD3;
-
-	stdio_serial_init(&usart_instance, SERCOM4, &config_usart);
-
-	usart_enable(&usart_instance);
 }
 
 /**
@@ -715,6 +652,15 @@ void wifi_callback(uint8_t evt, void *evt_msg)
 	}
 }
 
+static void configure_timer(void)
+{
+	struct sw_timer_config swt_conf;
+
+	sw_timer_get_config_defaults(&swt_conf);
+
+	sw_timer_init(&swt_module_inst, &swt_conf);
+	sw_timer_enable(&swt_module_inst);
+}
 
 int main()
 {
@@ -725,8 +671,10 @@ int main()
 	delay_init();
 	configure_usart();
 	configure_flash();
+	add_state(STORAGE_READY);
 	configure_timer();
 	configure_http_client();
+	configure_nvm();
 	nm_bsp_init(); //initialize wifi chip
 
 	tstrWifiInitParam wifi_params;
@@ -751,7 +699,6 @@ int main()
 			/* Checks the timer timeout. */
 			sw_timer_task(&swt_module_inst);
 		}
-		printf("main: please unplug the SD/MMC card.\r\n");
 		printf("main: done.\r\n");
 	} else {
 		printf("main: could not connect to AP. \r\n");

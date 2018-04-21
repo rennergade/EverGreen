@@ -26,7 +26,7 @@
     <OverrideVtorValue>exception_table</OverrideVtorValue>
     <BootSegment>2</BootSegment>
     <ResetRule>0</ResetRule>
-    <eraseonlaunchrule>0</eraseonlaunchrule>
+    <eraseonlaunchrule>2</eraseonlaunchrule>
     <EraseKey />
     <AsfFrameworkConfig>
       <framework-data>
@@ -543,6 +543,7 @@
   </armgcc.compiler.symbols.DefSymbols>
   <armgcc.compiler.directories.IncludePaths>
     <ListValues>
+      <Value>C:\Users\William\Desktop\Bootloader\evergreen-lib</Value>
       <Value>../src/ASF/common/boards</Value>
       <Value>../src/ASF/sam0/utils</Value>
       <Value>../src/ASF/sam0/utils/header_files</Value>
@@ -603,7 +604,8 @@
     </ListValues>
   </armgcc.linker.libraries.LibrarySearchPaths>
   <armgcc.linker.optimization.GarbageCollectUnusedSections>True</armgcc.linker.optimization.GarbageCollectUnusedSections>
-  <armgcc.linker.miscellaneous.LinkerFlags>-Wl,--entry=Reset_Handler -Wl,--cref -mthumb -T../src/ASF/sam0/utils/linker_scripts/samd21/gcc/samd21g18a_flash.ld</armgcc.linker.miscellaneous.LinkerFlags>
+  <armgcc.linker.memorysettings.ExternalRAM />
+  <armgcc.linker.miscellaneous.LinkerFlags>-Wl,--entry=Reset_Handler -Wl,--cref -mthumb -T../src/ASF/sam0/utils/linker_scripts/samd21/gcc/samd21g18a_flash.ld -Wl,--section-start=.text=0x4000</armgcc.linker.miscellaneous.LinkerFlags>
   <armgcc.assembler.general.IncludePaths>
     <ListValues>
       <Value>../src/ASF/common/boards</Value>
@@ -651,6 +653,7 @@
   <armgcc.preprocessingassembler.general.AssemblerFlags>-DARM_MATH_CM0PLUS=true -DBOARD=USER_BOARD -DSYSTICK_MODE -DEXTINT_CALLBACK_MODE=true -DSPI_CALLBACK_MODE=true -DUSART_CALLBACK_MODE=true -DTCC_ASYNC=true</armgcc.preprocessingassembler.general.AssemblerFlags>
   <armgcc.preprocessingassembler.general.IncludePaths>
     <ListValues>
+      <Value>C:\Users\William\Desktop\Bootloader\evergreen-lib</Value>
       <Value>../src/ASF/common/boards</Value>
       <Value>../src/ASF/sam0/utils</Value>
       <Value>../src/ASF/sam0/utils/header_files</Value>
@@ -812,6 +815,26 @@
     <Folder Include="src\iot\http\" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="C:\Users\William\Desktop\Bootloader\evergreen-lib\component-configurations.c">
+      <SubType>compile</SubType>
+      <Link>component-configurations.c</Link>
+    </Compile>
+    <Compile Include="C:\Users\William\Desktop\Bootloader\evergreen-lib\component-configurations.h">
+      <SubType>compile</SubType>
+      <Link>component-configurations.h</Link>
+    </Compile>
+    <Compile Include="C:\Users\William\Desktop\Bootloader\evergreen-lib\debug.c">
+      <SubType>compile</SubType>
+      <Link>debug.c</Link>
+    </Compile>
+    <Compile Include="C:\Users\William\Desktop\Bootloader\evergreen-lib\debug.h">
+      <SubType>compile</SubType>
+      <Link>debug.h</Link>
+    </Compile>
+    <Compile Include="C:\Users\William\Desktop\Bootloader\evergreen-lib\memory-app-definitions.h">
+      <SubType>compile</SubType>
+      <Link>memory-app-definitions.h</Link>
+    </Compile>
     <Compile Include="src\ASF\common2\components\memory\serial_flash\at25dfx\at25dfx.c">
       <SubType>compile</SubType>
     </Compile>
