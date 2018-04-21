@@ -34,9 +34,45 @@ uint32_t reset_vector[2];                       /// store reset vector for main 
 ///NOTE: 4 MSB are padding, then major, minor, revision.
 ///NOTE: This means that each versioning can have a maximum number of 15
 
-fw_status_t boot_status; /// global boot_status
+fw_status_t *boot_status; /// global boot_status
 
 
+static void update_boot_status(uint16_t fw_version)
+{
+	enum status_code read_nvm_code;
+	fw_status_t new_boot_status = { .signature = { 0xAB, 0xAC, 0xAB }, .new_image_ready = 0, .bl_version = VERSION, .fw_version = fw_version};
+	
+	struct nvm_parameters nvm_information;
+	nvm_get_parameters(&nvm_information);
+	uint16_t num_pages = nvm_information.nvm_number_of_pages;
+	uint16_t num_rows = num_pages / NVMCTRL_ROW_PAGES;
+	int page_to_write = BOOT_STATUS_ADDR / NVMCTRL_PAGE_SIZE;
+	int row_to_erase = page_to_write / NVMCTRL_ROW_PAGES;
+	uint8_t page_offset = page_to_write - (row_to_erase * NVMCTRL_ROW_PAGES);
+	int row_address = row_to_erase * NVMCTRL_ROW_SIZE;
+	uint8_t row_buffer[NVMCTRL_ROW_SIZE];
+
+	for (int i = 0; i < NVMCTRL_ROW_PAGES; i++) {
+		int offset = i * NVMCTRL_PAGE_SIZE;
+		do
+		read_nvm_code = nvm_read_buffer(row_address + offset, row_buffer + offset, NVMCTRL_PAGE_SIZE);
+		while (STATUS_OK != read_nvm_code);
+	}
+
+	do
+	read_nvm_code = nvm_erase_row(row_address);
+	while (STATUS_OK != read_nvm_code);
+
+	memcpy(row_buffer + (page_offset * NVMCTRL_PAGE_SIZE), &new_boot_status, sizeof(fw_status_t));
+
+	for (int i = 0; i < NVMCTRL_ROW_PAGES; i++) {
+		int offset = i * NVMCTRL_PAGE_SIZE;
+		do
+		read_nvm_code = nvm_write_buffer(row_address + offset, row_buffer + offset, NVMCTRL_PAGE_SIZE);
+		while (STATUS_OK != read_nvm_code);
+	}
+	
+}
 /**
  * configure ports for reset button
  */
@@ -212,26 +248,19 @@ void run_bootloader()
 	if (reset_vector[1] != 0xFFFFFFFF) {
 		volatile enum status_code read_nvm_code;
 		fw_header_t fw_information;
-
-
+		
 		char fw_version[9];
 		char bl_version[9];
-
-
-		uint16_t test_fw_version = 0x3c42;      //0011 1100 0100 0010 12.04.02
-		//	uint16_t test_bl_version = 0x1e80;      //0001 1110 1000 0000 14.08.00
-		create_version_string(fw_version, test_fw_version);
-		//	create_version_string(bl_version, test_bl_version);
-
-		//create_version_string(fw_version, fw_information.fw_version);
-		create_version_string(bl_version, boot_status.bl_version);
+		
+		create_version_string(fw_version, boot_status->fw_version);
+		create_version_string(bl_version, boot_status->bl_version);
 
 
 		printf("Evergreen Bootloader\r\n"
 		       "Current fW version: %s\r\n"
 		       "Current BL version: %s\r\n", fw_version, bl_version);
 
-		if (boot_status.new_image_ready) {
+		if (boot_status->new_image_ready) {
 			//TODO: Confirm that new image is newer version than current version
 
 			//ready to flash new image
@@ -252,7 +281,9 @@ void run_bootloader()
 
 			if (flash_image(FW1_ADDR, new_fw_header)) {
 				//TODO: change new image flag back to 0
+				update_boot_status(new_fw_header.fw_version);
 				printf("successfully updated firmware!\r\n");
+				at25dfx_chip_sleep(&at25dfx_chip);
 				run_application();
 			} else {
 				printf("error trying to flash image: please power cycle and try again.");
@@ -288,40 +319,11 @@ int main(void)
 	enum status_code read_nvm_code;
 #ifdef BOOTLOADER_INSTALL
 //Run only if bootloader has never been installed, sets up bl status header
-	//TODO: install bootloader status
-	struct nvm_parameters nvm_information;
-	nvm_get_parameters(&nvm_information);
-	uint16_t num_pages = nvm_information.nvm_number_of_pages;
-	uint16_t num_rows = num_pages / NVMCTRL_ROW_PAGES;
-	int page_to_write = BOOT_STATUS_ADDR / NVMCTRL_PAGE_SIZE;
-	int row_to_erase = page_to_write / NVMCTRL_ROW_PAGES;
-	uint8_t page_offset = page_to_write - (row_to_erase * NVMCTRL_ROW_PAGES);
-	int row_address = row_to_erase * NVMCTRL_ROW_SIZE;
-	uint8_t row_buffer[NVMCTRL_ROW_SIZE];
-
-	for (int i = 0; i < NVMCTRL_ROW_PAGES; i++) {
-		int offset = i * NVMCTRL_PAGE_SIZE;
-		do
-			read_nvm_code = nvm_read_buffer(row_address + offset, row_buffer + offset, NVMCTRL_PAGE_SIZE);
-		while (STATUS_OK != read_nvm_code);
-	}
-
-	do
-		read_nvm_code = nvm_erase_row(row_address);
-	while (STATUS_OK != read_nvm_code);
-
-	fw_status_t write_boot = { .signature = { 0xAB, 0xAC, 0xAB }, .new_image_ready = 0, .bl_version = VERSION };
-
-	memcpy(row_buffer + (page_offset * NVMCTRL_PAGE_SIZE), &write_boot, sizeof(fw_status_t));
-
-	for (int i = 0; i < NVMCTRL_ROW_PAGES; i++) {
-		int offset = i * NVMCTRL_PAGE_SIZE;
-		do
-			read_nvm_code = nvm_write_buffer(row_address + offset, row_buffer + offset, NVMCTRL_PAGE_SIZE);
-		while (STATUS_OK != read_nvm_code);
-	}
+	update_boot_status(0);
 #endif
-
+	
+	boot_status = BOOT_STATUS_ADDR;
+	
 	//Check if there's an application already in memory
 	do
 		read_nvm_code = nvm_read_buffer(APP_START_ADDRESS, reset_vector, sizeof(reset_vector));
@@ -342,20 +344,17 @@ int main(void)
 	}
 
 
-	do
-		read_nvm_code = nvm_read_buffer(BOOT_STATUS_ADDR, &boot_status, sizeof(fw_status_t));
-	while (STATUS_OK != read_nvm_code);
 	//check if there's a new image ready to be flashed in external memory
-	if (boot_status.new_image_ready) {
+	if (boot_status->new_image_ready) {
 		//go into bootloader
 		run_bootloader();
 		return EXIT_SUCCESS;
 	}
 
 	//check if boot status has been overwritten (basically MBR)
-	if (boot_status.signature[0] != 0xAB
-	    || boot_status.signature[1] != 0xAC
-	    || boot_status.signature[2] != 0xAB) {
+	if (boot_status->signature[0] != 0xAB
+	    || boot_status->signature[1] != 0xAC
+	    || boot_status->signature[2] != 0xAB) {
 		//flash error, enter bootloader, throw error
 		//TODO: write this code
 	} else {

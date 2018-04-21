@@ -52,7 +52,8 @@
 typedef struct fw_status {
 	uint8_t		signature[3];           ///set values that confirm bootloader is still intact
 	uint8_t		new_image_ready;        /// are we ready to write a new image?
-	uint16_t	bl_version;							/// version of bootloader 
+	uint16_t	bl_version;							/// version of bootloader
+	uint16_t	fw_version;
 } fw_status_t;
 
 
