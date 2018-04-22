@@ -2,8 +2,16 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include "handler.h"
+#include "MQTTeg.h"
+#include "TSL2561/TSL2561.h"
+#include "HDC1080/hdc1080.h"
+
 
 //TODO: bug with backspace doesn't allow whitespace etc
+
+#define COUNTER_MAX 42000 //1 minute in cycles
+#define SUCCESS              0
+#define FAILURE              1
 
 
 #define CR '\r'                                                 /// Carriage Return
@@ -101,13 +109,31 @@ void fix_args()
 
 int main(void)
 {
+	uint32_t MQTTCounter = 0;
+	
+	int wifi_result = SUCCESS;
+	    
+	uint8_t mqtt_send_buffer[MAIN_MQTT_BUFFER_SIZE];
+
+
 	system_init();
 	system_interrupt_enable_global();
 	delay_init();
-
 	configure_usart();
 	
-	configure_adc(PIN_PA02); //configure moisture sensor analog
+	wifi_result = wifi_init();
+	
+	if (SUCCESS != wifi_result) printf("\r\n...Wi-Fi failed to configure...\r\n");
+	
+	printf("Board initialized.\r\n");
+
+	
+
+	/* Connect to router. */
+	m2m_wifi_connect((char *)MAIN_WLAN_SSID, sizeof(MAIN_WLAN_SSID),
+	MAIN_WLAN_AUTH, (char *)MAIN_WLAN_PSK, M2M_WIFI_CH_ALL);
+	
+	configure_adc(MOISTURE_ANA_PIN); //configure moisture sensor analog
 	configure_i2c_temp(); //config i2c
 	configure_i2c_lux();
 	configure_i2c_callbacks_hdc();
@@ -121,13 +147,79 @@ int main(void)
 	printf("Welcome to the Evergreen CLI.\r\n");
 	printf("> ");
 	while (1) {
-		bool commandEntered = processUserInput();
-		if (commandEntered) {
-			fix_args();
-			input_handle(argc, argv); //fix
-			argc = 0;
-			printf("> ");
+	
+	    /* Handle pending events from network controller. */
+	    m2m_wifi_handle_events(NULL);
+	    /* Checks the timer timeout. */
+	    sw_timer_task(&swt_module_inst);
+		
+		
+
+// 		if (1 == RequestVersionByMQTT)
+// 		{
+// 			sprintf(mqtt_send_buffer, "FW version [%d, %d]", FW_VERSION_MAJOR, FW_VERSION_MINOR);
+// 			mqtt_publish(&mqtt_inst, REPLY_TOPIC, mqtt_send_buffer, strlen(mqtt_send_buffer), 1, 0);
+// 			RequestVersionByMQTT = 0;
+// 		} TODO FIRMWARE MQTT?
+// 		else if ((RcvDownloadFwCmdByMQTT == 1 || port_pin_get_input_level(BUTTON1) == false))
+// 		{
+// // 			FetchFirmwareFromServer();
+// 			RcvDownloadFwCmdByMQTT = 0;
+		//} TODO? IMPLEMENT FIRMWARE OVER MQTT
+		
+		if (MQTTCounter >= 20000)
+		{
+			delay_ms(1000);
+			MQTTCounter = 0; //reset sensor counter
+
+			printf("Sending sensor values to Cloud.\r\n");
+			//temp
+// 			double temperature = 0;
+// 			double humidity = 0;
+// 			int errorcode = hdc1080_measure(&temperature, &humidity);
+// 			
+//  			sprintf(mqtt_send_buffer, "%d", temperature);
+//  			mqtt_publish(&mqtt_inst, TEMPERATURE_TOPIC, mqtt_send_buffer, sizeof(temperature), 1, 0);
+			
+			//humidity
+// 			sprintf(mqtt_send_buffer, "%d", humidity);
+// 			mqtt_publish(&mqtt_inst, HUMIDITY_TOPIC, mqtt_send_buffer, sizeof(humidity), 1, 0);
+			
+			
+			//lux
+			
+			tsl2561_init();
+			uint32_t lux_value = getLuminosity();			
+			
+			printf("Lux: %d\r\n", lux_value);
+			
+			sprintf(mqtt_send_buffer, "%d", lux_value);
+			mqtt_publish(&mqtt_inst, LUX_TOPIC, mqtt_send_buffer, sizeof(lux_value), 1, 0);
+				
+			
+			//moisture
+			float m_value = get_moisture();		
+			
+			printf("Moisture: %.02f\r\n", m_value);	
+			
+			sprintf(mqtt_send_buffer, "%.02f", m_value);
+			mqtt_publish(&mqtt_inst, MOISTURE_TOPIC, mqtt_send_buffer, sizeof(m_value), 1, 0);
+			
+			
 		}
+		
+		
+// 		else {
+// 			bool commandEntered = processUserInput();
+// 			if (commandEntered) {
+// 				fix_args();
+// 				input_handle(argc, argv); //fix
+// 				argc = 0;
+// 				printf("> ");
+// 			}
+// 		}
+		//printf("%ul\r\n", MQTTCounter);
+		++MQTTCounter;
 	}
 
 	for (int i = 0; i < MAX_ARGS; i++)

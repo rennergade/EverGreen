@@ -596,6 +596,19 @@ void input_handle(int argc, char **argv)
 		}
 	printf("LED2 turning off.\r\n");
 	led2_off();
+	} else if (!(strcmp("run_pump", argv[0]))) {
+	int required_args = 2;
+	if (argc != required_args) {
+		print_args_error("run_pump", required_args, argc);
+		return;
+	}
+	int duration = atoi(argv[1]);
+	if (isdigit(argv[1][0])) {
+		run_pump(duration);
+	}
+	else
+	print_general_error("run_pump");
+	
 	} else {
 		printf("Invalid input. See help for correct usage.\r\n");
 	}
@@ -634,8 +647,8 @@ void configure_i2c_lux(void)
 	i2c_master_get_config_defaults(&config_i2c_master);
 	/* Change buffer timeout to something longer */
 	config_i2c_master.buffer_timeout = 65535;
-	config_i2c_master.pinmux_pad0 = PINMUX_PA08D_SERCOM2_PAD0;
-	config_i2c_master.pinmux_pad1 = PINMUX_PA09D_SERCOM2_PAD1;
+	config_i2c_master.pinmux_pad0 = PINMUX_PA08C_SERCOM0_PAD0;
+	config_i2c_master.pinmux_pad1 = PINMUX_PA09C_SERCOM0_PAD1;
 	config_i2c_master.generator_source = GCLK_GENERATOR_0;
 	/* Initialize and enable device with config */
 	while (i2c_master_init(&i2c_tsl_instance, CONF_I2C_MASTER_MODULE_LUX, &config_i2c_master) != STATUS_OK);
@@ -736,7 +749,7 @@ void configure_adc(int pin)
 
 	adc_get_config_defaults(&config_adc);
 	config_adc.positive_input = pin;
-	config_adc.reference = ADC_REFERENCE_INTVCC1;
+	config_adc.reference = ADC_REFERENCE_INTVCC0;
 	config_adc.clock_prescaler = ADC_CLOCK_PRESCALER_DIV16;
 	adc_init(&adc_instance, ADC, &config_adc);
 	adc_enable(&adc_instance);
@@ -832,6 +845,18 @@ void relay2_disable(void)
 	port_pin_set_output_level(PIN_PB03, false);
 }
 
+void gpio5_enable(void)
+{
+	configure_port_pins_set(PIN_PB23);
+	port_pin_set_output_level(PIN_PB23, true);
+}
+
+void gpio5_disable(void)
+{
+	configure_port_pins_set(PIN_PB23);
+	port_pin_set_output_level(PIN_PB23, false);
+}
+
 
 /**
  * Initializes at25dfx flash
@@ -911,4 +936,60 @@ void flash_test(void)
 	printf("Flash sleeping\r\n");
 	
 	at25dfx_chip_sleep(&at25dfx_chip);	
+}
+/**
+ * ASF PWM example
+ */
+static void configure_tcc_pwm(void)
+{
+	struct tcc_config config_tcc;
+	tcc_get_config_defaults(&config_tcc, CONF_PWM_MODULE);
+	config_tcc.counter.clock_prescaler = TCC_CLOCK_PRESCALER_DIV256;
+	config_tcc.counter.period = 0xFFFF;
+	config_tcc.compare.wave_generation = TCC_WAVE_GENERATION_MATCH_FREQ;
+	config_tcc.compare.match[CONF_PWM_CHANNEL] = (0xFFFF / (20*0xFFFF));
+	config_tcc.pins.enable_wave_out_pin[CONF_PWM_OUTPUT] = true;
+	config_tcc.pins.wave_out_pin[CONF_PWM_OUTPUT]        = CONF_PWM_OUT_PIN;
+	config_tcc.pins.wave_out_pin_mux[CONF_PWM_OUTPUT]    = CONF_PWM_OUT_MUX;
+	tcc_init(&tcc_instance_pwm, CONF_PWM_MODULE, &config_tcc);
+	tcc_enable(&tcc_instance_pwm);
+}
+
+void ramp_tcc_pwm(int duty)
+{
+	tcc_disable(&tcc_instance_pwm);
+	
+	struct tcc_config config_tcc;
+	
+	tcc_get_config_defaults(&config_tcc, CONF_PWM_MODULE);
+	config_tcc.counter.clock_prescaler = TCC_CLOCK_PRESCALER_DIV256;
+	config_tcc.counter.period = 0xFFFF/2;
+	config_tcc.compare.wave_generation = TCC_WAVE_GENERATION_NORMAL_FREQ;
+	config_tcc.compare.match[CONF_PWM_CHANNEL] = (0xFFFF / 0xFFFF);
+	config_tcc.pins.enable_wave_out_pin[CONF_PWM_OUTPUT] = true;
+	config_tcc.pins.wave_out_pin[CONF_PWM_OUTPUT]        = CONF_PWM_OUT_PIN;
+	config_tcc.pins.wave_out_pin_mux[CONF_PWM_OUTPUT]    = CONF_PWM_OUT_MUX;
+
+	tcc_init(&tcc_instance_pwm, CONF_PWM_MODULE, &config_tcc);
+	tcc_enable(&tcc_instance_pwm);
+}
+
+void run_pump(int duration) {
+	
+	boost_enable();
+	gpio5_enable();
+	//configure_tcc_pwm();
+	
+// 	for (int i = 10; i >= 1; i--) //set pwm range
+// 		{
+// 			ramp_tcc_pwm(0xFFFF*i);
+// 			delay_ms(2000);
+// 		}
+		
+	delay_ms(duration); //duration of pump
+	
+	//tcc_disable(&tcc_instance_pwm);
+	gpio5_disable();
+	boost_disable();
+	
 }

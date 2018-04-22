@@ -5,7 +5,16 @@
 //defines
 //I2C
 #define CONF_I2C_MASTER_MODULE_TEMP SERCOM3
-#define CONF_I2C_MASTER_MODULE_LUX SERCOM2
+#define CONF_I2C_MASTER_MODULE_LUX SERCOM0
+
+//pwm
+#define CONF_PWM_MODULE      TCC1
+#define CONF_PWM_CHANNEL     0
+#define CONF_PWM_OUTPUT      0
+#define CONF_PWM_OUT_PIN     PIN_PA06E_TCC1_WO0
+#define CONF_PWM_OUT_MUX     PINMUX_PA06E_TCC1_WO0
+
+#define MOISTURE_ANA_PIN ADC_POSITIVE_INPUT_PIN0
 
 
 
@@ -52,6 +61,11 @@ void configure_port_pins_get(int pin);
 
 void configure_adc(int pin);
 
+static void configure_tcc_pwm(void);
+void ramp_tcc_pwm(int duty);
+
+void run_pump(int duration);
+
 float get_moisture(void);
 
 void flash_test(void);
@@ -67,6 +81,9 @@ void relay1_enable(void);
 void relay1_disable(void);
 void relay2_enable(void);
 void relay2_disable(void);
+void gpio5_enable(void);
+void gpio5_disable(void);
+
 
 
 
@@ -90,6 +107,10 @@ struct adc_module adc_instance;
 static uint8_t rd_buffer[DATA_LENGTH];
 struct i2c_master_module i2c_tsl_instance;
 struct i2c_master_module i2c_hdc_instance;
+
+//pwm init
+struct tcc_module tcc_instance_pwm;
+
 
 
 
