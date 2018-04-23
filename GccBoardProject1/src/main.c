@@ -201,10 +201,12 @@ int main(void)
 // 			double humidity = 0;
 // 			int errorcode = hdc1080_measure(&temperature, &humidity);
 // 			
-//  			sprintf(mqtt_send_buffer, "%d", temperature);
-//  			mqtt_publish(&mqtt_inst, TEMPERATURE_TOPIC, mqtt_send_buffer, sizeof(temperature), 1, 0);
+			//memset(mqtt_send_buffer, 0, sizeof(mqtt_send_buffer));
+//  		sprintf(mqtt_send_buffer, "%d", temperature);
+//  		mqtt_publish(&mqtt_inst, TEMPERATURE_TOPIC, mqtt_send_buffer, sizeof(temperature), 1, 0);
 			
 			//humidity
+			//memset(mqtt_send_buffer, 0, sizeof(mqtt_send_buffer));
 // 			sprintf(mqtt_send_buffer, "%d", humidity);
 // 			mqtt_publish(&mqtt_inst, HUMIDITY_TOPIC, mqtt_send_buffer, sizeof(humidity), 1, 0);
 			
@@ -226,6 +228,7 @@ int main(void)
 			
 			printf("Moisture: %.02f\r\n", m_value);	
 			
+			memset(mqtt_send_buffer, 0, sizeof(mqtt_send_buffer));
 			sprintf(mqtt_send_buffer, "%.02f", m_value);
 			mqtt_publish(&mqtt_inst, MOISTURE_TOPIC, mqtt_send_buffer, sizeof(m_value), 1, 0);
 			

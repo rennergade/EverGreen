@@ -978,17 +978,11 @@ void run_pump(int duration) {
 	
 	//boost_enable();
 	gpio5_enable();
-	//configure_tcc_pwm();
+	led1_on();	
 	
-// 	for (int i = 10; i >= 1; i--) //set pwm range
-// 		{
-// 			ramp_tcc_pwm(0xFFFF*i);
-// 			delay_ms(2000);
-// 		}
-		
 	delay_ms(duration); //duration of pump
 	
-	//tcc_disable(&tcc_instance_pwm);
+	led1_off();
 	gpio5_disable();
 	//boost_disable();
 	
