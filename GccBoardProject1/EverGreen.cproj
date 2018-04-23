@@ -26,7 +26,7 @@
     <OverrideVtorValue>exception_table</OverrideVtorValue>
     <BootSegment>2</BootSegment>
     <ResetRule>0</ResetRule>
-    <eraseonlaunchrule>0</eraseonlaunchrule>
+    <eraseonlaunchrule>2</eraseonlaunchrule>
     <EraseKey />
     <AsfFrameworkConfig>
       <framework-data>
@@ -905,10 +905,6 @@
     <Folder Include="src\ASF\thirdparty\CMSIS\Lib\" />
     <Folder Include="src\ASF\thirdparty\CMSIS\Lib\GCC\" />
     <Folder Include="src\config\" />
-    <Folder Include="src\HDC1080" />
-    <Folder Include="src\iot" />
-    <Folder Include="src\iot\mqtt" />
-    <Folder Include="src\TSL2561" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="src\ASF\common2\components\memory\serial_flash\at25dfx\at25dfx.c">
@@ -1154,37 +1150,10 @@
     <None Include="src\config\conf_extint.h">
       <SubType>compile</SubType>
     </None>
-    <Compile Include="src\HDC1080\hdc1080.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\HDC1080\hdc1080.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\iot\mqtt\mqtt.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\iot\stream_writer.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\iot\stream_writer.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\iot\sw_timer.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\iot\sw_timer.h">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="src\MQTTeg.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\MQTTeg.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\TSL2561\TSL2561.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\TSL2561\TSL2561.h">
       <SubType>compile</SubType>
     </Compile>
     <None Include="src\ASF\sam0\drivers\adc\adc.h">
@@ -1821,9 +1790,6 @@
       <SubType>compile</SubType>
     </None>
     <None Include="src\ASF\thirdparty\CMSIS\README.txt">
-      <SubType>compile</SubType>
-    </None>
-    <None Include="src\iot\mqtt\libMQTT.a">
       <SubType>compile</SubType>
     </None>
   </ItemGroup>

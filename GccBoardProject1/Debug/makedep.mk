@@ -54,15 +54,7 @@ src\ASF\sam0\drivers\tcc\tcc.c
 
 src\ASF\sam0\drivers\tcc\tcc_callback.c
 
-src\HDC1080\hdc1080.c
-
-src\iot\stream_writer.c
-
-src\iot\sw_timer.c
-
 src\MQTTeg.c
-
-src\TSL2561\TSL2561.c
 
 src\ASF\common2\services\delay\sam0\systick_counter.c
 

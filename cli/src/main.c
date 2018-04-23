@@ -1,20 +1,9 @@
-#include <string.h>
-#include <stdlib.h>
-#include <ctype.h>
+#include <asf.h>
+#include "component-configurations.h"
+#include "hdc_1080.h"
+#include "TSL2561.h"
 #include "handler.h"
-
-
-
-//TODO: bug with backspace doesn't allow whitespace etc
-
-#define COUNTER_MAX 42000 //1 minute in cycles
-#define SUCCESS              0
-#define FAILURE              1
-
-
-extern volatile int wifi_connected;
-extern volatile int mqtt_connected;
-
+#include <ctype.h>
 
 
 #define CR '\r'                                                 /// Carriage Return
@@ -25,6 +14,8 @@ extern volatile int mqtt_connected;
 #define MAX_RX_BUFFER_LENGTH   100                              /// max buffer length for rx reads
 #define MAX_ARG_LENGTH (MAX_RX_BUFFER_LENGTH / MAX_ARGS)        /// max arg length
 #define MAX_ARGS 4                                              /// max args is 4 for read
+
+struct usart_module usart_instance;
 
 volatile uint8_t rx_buffer[MAX_RX_BUFFER_LENGTH];               /// rx buffer
 uint8_t numberCharsRead;                                        /// number of chars read
@@ -116,20 +107,17 @@ void fix_args()
 
 int main(void)
 {
-
 	system_init();
 	system_interrupt_enable_global();
 	delay_init();
 	configure_usart();
+	configure_i2c_tsl2561(ADDR_FLOAT);
+	configure_i2c_hdc();
+	set_resolution(FOURTEEN_BIT_RESOLUTION, FOURTEEN_BIT_RESOLUTION);
 	
-	configure_adc(MOISTURE_ANA_PIN); //configure moisture sensor analog
-	configure_i2c_temp(); //config i2c
-	configure_i2c_lux();
-	configure_i2c_callbacks_hdc();
-	configure_i2c_callbacks_tsl();
-	
-	
-		
+	uint16_t hdc_dev = get_hdc_device_id();
+	uint16_t hdc_manu = get_hdc_manufacturer_id();
+	printf("dev id: 0x%02x\r\n manu id: 0x%02x\r\n", hdc_dev, hdc_manu);
 	for (int i = 0; i < MAX_ARGS; i++)
 		argv[i] = malloc(sizeof(char) * MAX_ARG_LENGTH);
 
@@ -153,5 +141,3 @@ int main(void)
 
 	return 0;
 }
-
-
