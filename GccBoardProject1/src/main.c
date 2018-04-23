@@ -23,7 +23,7 @@ extern char mqtt_buffer[MAIN_MQTT_BUFFER_SIZE];
 
 #define CR '\r'                                                 /// Carriage Return
 #define LF '\n'                                                 /// Line feed
-#define BS '\b'                                                 /// backspace
+#define BS 127                                                 /// backspace
 #define NULLCHAR '\0'                                           /// null character char
 #define SPACE ' '                                               /// ascii space
 #define MAX_RX_BUFFER_LENGTH   100                              /// max buffer length for rx reads
@@ -48,13 +48,16 @@ bool processUserInput(void)
 	if (STATUS_OK != uartReadCode) {
 		return false;
 	}
-	if (STATUS_OK == uartReadCode) {
-		volatile enum status_code uartWriteCode = usart_write_buffer_wait(&usart_instance, &singleCharInput, 1);
+	if((singleCharInput != BS && !numberCharsRead) || numberCharsRead) {
+		if (STATUS_OK == uartReadCode) {
+			volatile enum status_code uartWriteCode = usart_write_buffer_wait(&usart_instance, &singleCharInput, 1);
+		}
 	}
+	
 
 	switch (singleCharInput) {
 	case CR:
-	case LF:
+	case LF: {
 		/// On carriage return (CR) or line feed (LF), the user has hit enter and it's time to process their command.
 		/// Remember to null terminate your strings!  Otherwise, you could keep reading throughout memory.
 		rx_buffer[numberCharsRead] = NULLCHAR;
@@ -63,8 +66,8 @@ bool processUserInput(void)
 			return true;
 		}
 		break;
-
-	case BS:
+	}
+	case BS: {
 		/// User input a backspace -- remove the character
 		if(!numberCharsRead) //no characters written
 			break;
@@ -74,13 +77,14 @@ bool processUserInput(void)
 		/// Feeling cheeky?  Do it all in one line
 		// rx_buffer[--numberCharsRead] = NULLCHAR;
 		break;
-
-	default:
+	}
+	default: {
 		/// All other cases
 		if (numberCharsRead < MAX_RX_BUFFER_LENGTH)
 			rx_buffer[numberCharsRead++] = singleCharInput;
 		rx_buffer[numberCharsRead] = NULLCHAR;  ///< String read protection
 		break;
+	}
 	}
 	return false;
 }
@@ -128,32 +132,6 @@ int main(void)
 	delay_init();
 	configure_usart();
 	
-	wifi_result = wifi_init();
-	
-	if (SUCCESS != wifi_result) printf("\r\n...Wi-Fi failed to configure...\r\n");
-	
-	printf("Board initialized.\r\n");
-
-	/* Connect to router. */
-	m2m_wifi_connect((char *)MAIN_WLAN_SSID, sizeof(MAIN_WLAN_SSID),
-	MAIN_WLAN_AUTH, (char *)MAIN_WLAN_PSK, M2M_WIFI_CH_ALL);
-	
-	while(!(wifi_connected)) {		
-		    /* Handle pending events from network controller. */
-		    m2m_wifi_handle_events(NULL);
-		    /* Checks the timer timeout. */
-		    sw_timer_task(&swt_module_inst);
-	}
-	
-	while(!(mqtt_connected)) {
-		/* Handle pending events from network controller. */
-		m2m_wifi_handle_events(NULL);
-		/* Checks the timer timeout. */
-		sw_timer_task(&swt_module_inst);
-	}
-	
-	
-	
 	configure_adc(MOISTURE_ANA_PIN); //configure moisture sensor analog
 	configure_i2c_temp(); //config i2c
 	configure_i2c_lux();
@@ -166,85 +144,18 @@ int main(void)
 		argv[i] = malloc(sizeof(char) * MAX_ARG_LENGTH);
 
 	//TODO: print version information
-	printf("Welcome to the Evergreen CLI.\r\n");
+	printf("\r\nWelcome to the Evergreen CLI.\r\n");
 	printf("> ");
 	while (1) {
-	
-	    /* Handle pending events from network controller. */
-	    m2m_wifi_handle_events(NULL);
-	    /* Checks the timer timeout. */
-	    sw_timer_task(&swt_module_inst);
-		
-		
-
-// 		if (1 == RequestVersionByMQTT)
-// 		{
-// 			sprintf(mqtt_send_buffer, "FW version [%d, %d]", FW_VERSION_MAJOR, FW_VERSION_MINOR);
-// 			mqtt_publish(&mqtt_inst, REPLY_TOPIC, mqtt_send_buffer, strlen(mqtt_send_buffer), 1, 0);
-// 			RequestVersionByMQTT = 0;
-// 		} TODO FIRMWARE MQTT?
-// 		else if ((RcvDownloadFwCmdByMQTT == 1 || port_pin_get_input_level(BUTTON1) == false))
-// 		{
-// // 			FetchFirmwareFromServer();
-// 			RcvDownloadFwCmdByMQTT = 0;
-		//} TODO? IMPLEMENT FIRMWARE OVER MQTT
-		
-		if (MQTTCounter >= 3000000)
-		{
-			MQTTCounter = 0; //reset sensor counter
-
-			printf("Sending sensor values to Cloud.\r\n");
-			
-		
-			//temp
-// 			double temperature = 0;
-// 			double humidity = 0;
-// 			int errorcode = hdc1080_measure(&temperature, &humidity);
-// 			
-//  			sprintf(mqtt_send_buffer, "%d", temperature);
-//  			mqtt_publish(&mqtt_inst, TEMPERATURE_TOPIC, mqtt_send_buffer, sizeof(temperature), 1, 0);
-			
-			//humidity
-// 			sprintf(mqtt_send_buffer, "%d", humidity);
-// 			mqtt_publish(&mqtt_inst, HUMIDITY_TOPIC, mqtt_send_buffer, sizeof(humidity), 1, 0);
-			
-			
-			//lux
-			
-			tsl2561_init();
-			uint32_t lux_value = getLuminosity();			
-			
-			printf("Lux: %d\r\n", lux_value);
-			
-			memset(mqtt_send_buffer, 0, sizeof(mqtt_send_buffer));
-			sprintf(mqtt_send_buffer, "%d", lux_value);
-			mqtt_publish(&mqtt_inst, LUX_TOPIC, mqtt_send_buffer, strlen(mqtt_send_buffer), 0, 0);
-				
-			
-			//moisture
-			float m_value = get_moisture();		
-			
-			printf("Moisture: %.02f\r\n", m_value);	
-			
-			sprintf(mqtt_send_buffer, "%.02f", m_value);
-			mqtt_publish(&mqtt_inst, MOISTURE_TOPIC, mqtt_send_buffer, sizeof(m_value), 1, 0);
-			
-			
-		}
-		
-		
-// 		else {
-// 			bool commandEntered = processUserInput();
-// 			if (commandEntered) {
-// 				fix_args();
-// 				input_handle(argc, argv); //fix
-// 				argc = 0;
-// 				printf("> ");
-// 			}
-// 		}
-		//printf("%ul\r\n", MQTTCounter);
-		++MQTTCounter;
-	}
+ 			bool commandEntered = processUserInput();
+ 			if (commandEntered) {
+				printf("> %s\r\n", rx_buffer);
+ 				fix_args();
+ 				input_handle(argc, argv); //fix
+ 				argc = 0;
+ 				printf("> ");
+ 			}
+ 		}
 
 	for (int i = 0; i < MAX_ARGS; i++)
 		free(argv[i]);
