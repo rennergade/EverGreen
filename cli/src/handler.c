@@ -9,8 +9,6 @@
 
 #define APP_VERSION "0.0.0"/// application version info
 
-
-
 /// Available GPIO pins for A and B ports
 #define GPIO_PIN_A_1 8 //TODO: change a8/a9 as these are i2c
 #define GPIO_PIN_A_2 9
@@ -284,6 +282,23 @@ float get_moisture(void)
 	
 }
 
+// 1 = update 0 check for upgrade
+void otafu(uint8_t update_or_firmware) {
+	if(update_or_firmware) {
+		if(download_firmware()) {
+			printf("firmware successfully downloaded!\r\n");
+		} else {
+			printf("download failed...\r\n");
+		}
+	} else {
+		if(check_for_update()) {
+			printf("update available!\r\n");
+		} else {
+			printf("on latest version\r\n");
+		}
+	}
+	
+}
 
 
 /**
@@ -593,6 +608,20 @@ void input_handle(int argc, char **argv)
 		}
 	printf("LED2 turning off.\r\n");
 	led2_off();
+	} else if (!(strcmp("check_for_update", argv[0]))) {
+	int required_args = 1;
+	if (argc != required_args) {
+		print_args_error("check_for_update", required_args, argc);
+		return;
+	}
+	otafu(0);
+	} else if (!(strcmp("download_update", argv[0]))) {
+	int required_args = 1;
+	if (argc != required_args) {
+		print_args_error("download_update", required_args, argc);
+		return;
+	}
+	otafu(1);
 	} else if (!(strcmp("run_pump", argv[0]))) {
 	int required_args = 2;
 	if (argc != required_args) {

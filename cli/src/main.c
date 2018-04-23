@@ -108,12 +108,16 @@ void fix_args()
 int main(void)
 {
 	system_init();
-	system_interrupt_enable_global();
+	//system_interrupt_enable_global();
 	delay_init();
 	configure_usart();
+	configure_nvm();
+	configure_flash();
 	configure_i2c_tsl2561(ADDR_FLOAT);
 	configure_i2c_hdc();
 	set_resolution(FOURTEEN_BIT_RESOLUTION, FOURTEEN_BIT_RESOLUTION);
+	get_default_wifi_config(&new_wifi_configuration);
+	configure_wifi_module(&new_wifi_configuration);
 	
 	uint16_t hdc_dev = get_hdc_device_id();
 	uint16_t hdc_manu = get_hdc_manufacturer_id();

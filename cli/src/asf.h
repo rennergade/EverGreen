@@ -55,7 +55,7 @@
 // From module: ADC - Analog-to-Digital Converter (Polled APIs)
 #include <adc.h>
 
-// From module: CRC32 - 32-bit cyclic redundancy check
+// From module: CRC-32 calculation
 #include <crc32.h>
 
 // From module: Common SAM0 compiler driver
@@ -71,6 +71,10 @@
 // From module: Delay routines
 #include <delay.h>
 
+// From module: EXTINT - External Interrupt (Callback APIs)
+#include <extint.h>
+#include <extint_callback.h>
+
 // From module: Generic board support
 #include <board.h>
 
@@ -82,9 +86,6 @@
 
 // From module: NVM - Non-Volatile Memory
 #include <nvm.h>
-
-// From module: PAC - Peripheral Access Controller
-#include <pac.h>
 
 // From module: PORT - GPIO Pin Control
 #include <port.h>

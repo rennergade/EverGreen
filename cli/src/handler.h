@@ -1,6 +1,7 @@
 #include <asf.h>
 #include <usart.h>
 #include "delay.h"
+#include "wifi.h"
 
 //pwm
 #define CONF_PWM_MODULE      TCC1
@@ -44,5 +45,6 @@ void gpio5_disable(void);
 
 struct adc_module adc_instance;
 struct tcc_module tcc_instance_pwm;
+wifi_config new_wifi_configuration;
 
 
