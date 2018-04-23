@@ -976,7 +976,7 @@ void ramp_tcc_pwm(int duty)
 
 void run_pump(int duration) {
 	
-	boost_enable();
+	//boost_enable();
 	gpio5_enable();
 	//configure_tcc_pwm();
 	
@@ -990,6 +990,6 @@ void run_pump(int duration) {
 	
 	//tcc_disable(&tcc_instance_pwm);
 	gpio5_disable();
-	boost_disable();
+	//boost_disable();
 	
 }

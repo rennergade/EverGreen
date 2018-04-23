@@ -1,9 +1,9 @@
 /**
  * \file
  *
- * \brief SAM SPI configuration
+ * \brief MAIN configuration.
  *
- * Copyright (C) 2013-2015 Atmel Corporation. All rights reserved.
+ * Copyright (c) 2016-2017 Atmel Corporation. All rights reserved.
  *
  * \asf_license_start
  *
@@ -22,9 +22,6 @@
  * 3. The name of Atmel may not be used to endorse or promote products derived
  *    from this software without specific prior written permission.
  *
- * 4. This software may only be redistributed and used in connection with an
- *    Atmel microcontroller product.
- *
  * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
@@ -40,16 +37,40 @@
  * \asf_license_stop
  *
  */
+
+#ifndef MAIN_H_INCLUDED
+#define MAIN_H_INCLUDED
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* Max size of UART buffer. */
+#define MAIN_CHAT_BUFFER_SIZE 64
+
+/* Max size of MQTT buffer. */
+#define MAIN_MQTT_BUFFER_SIZE 128
+
+/* Limitation of user name. */
+#define MAIN_CHAT_USER_NAME_SIZE 64
+
+/* Chat MQTT topic. */
+#define MAIN_CHAT_TOPIC "renner/"
+
 /*
- * Support and FAQ: visit <a href="http://www.atmel.com/design-support/">Atmel Support</a>
+ * A MQTT broker server which was connected.
+ * m2m.eclipse.org is public MQTT broker.
  */
+static const char main_mqtt_broker[] =  "deet.seas.upenn.edu";
 
 
-#ifndef CONF_SPI_H_INCLUDED
-#  define CONF_SPI_H_INCLUDED
+/** Wi-Fi Settings */
+#define MAIN_WLAN_SSID        "AirPennNet-Device" /* < Destination SSID */
+#define MAIN_WLAN_AUTH        M2M_WIFI_SEC_WPA_PSK /* < Security manner */
+#define MAIN_WLAN_PSK         "penn1740wifi" /* < Password for Destination SSID */
 
-#  define CONF_SPI_MASTER_ENABLE     true
-#  define CONF_SPI_SLAVE_ENABLE      false
+#ifdef __cplusplus
+}
+#endif
 
-#endif /* CONF_SPI_H_INCLUDED */
-
+#endif /* MAIN_H_INCLUDED */

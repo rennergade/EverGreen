@@ -57,6 +57,9 @@
 static uint8_t RcvDownloadFwCmdByMQTT;
 static uint8_t RequestVersionByMQTT;
 
+volatile int wifi_connected = 0;
+volatile int mqtt_connected = 0;
+
 /**
  * \brief Callback to get the Wi-Fi status update.
  *
@@ -112,6 +115,7 @@ static void wifi_callback(uint8 msg_type, void *msg_data)
 				msg_ip_addr[0], msg_ip_addr[1], msg_ip_addr[2], msg_ip_addr[3]);
 		/* Try to connect to MQTT broker when Wi-Fi was connected. */
 		mqtt_connect(&mqtt_inst, main_mqtt_broker);
+		wifi_connected = 1; 
 		break;
 
 	default:
@@ -174,9 +178,12 @@ static void mqtt_callback(struct mqtt_module *module_inst, int type, union mqtt_
 		 * Or else retry to connect to broker server.
 		 */
 		if (data->sock_connected.result >= 0) {
-			//mqtt_connect_broker(module_inst, 1, NULL, NULL, mqtt_user, NULL, NULL, 0, 0, 0);
 			
-			mqtt_connect_broker(module_inst, 1, BROKERNAME, BROKERPASS, mqtt_user, NULL, NULL, 0, 0, 0);
+			mqtt_connect_broker(module_inst, 1, NULL, NULL, MQTT_USER, NULL, NULL, 0, 0, 0);
+			
+			mqtt_connected = 1;
+			
+			
 
 		} else {
 			printf("Connect fail to server(%s)! retry it automatically.\r\n", main_mqtt_broker);
@@ -189,19 +196,13 @@ static void mqtt_callback(struct mqtt_module *module_inst, int type, union mqtt_
 		if (data->connected.result == MQTT_CONN_RESULT_ACCEPT) {
 			/* Subscribe chat topic. */
 			  module_inst->busy = 0;
-			  mqtt_subscribe(module_inst, PUMP_TOPIC "#", 1);
-			  mqtt_subscribe(module_inst, RELAY1_TOPIC "#", 1);
-			  mqtt_subscribe(module_inst, RELAY2_TOPIC "#", 1);
-			  mqtt_subscribe(module_inst, LED_TOPIC "#", 1);
-			  
-			  mqtt_subscribe(module_inst, TEMPERATURE_TOPIC "#", 1);
-			  mqtt_subscribe(module_inst, HUMIDITY_TOPIC "#", 1);
-			  mqtt_subscribe(module_inst, LUX_TOPIC "#", 1);
-			  mqtt_subscribe(module_inst, MOISTURE_TOPIC "#", 1);
-
-
-			  mqtt_subscribe(module_inst, UPGRADE_TOPIC "#", 1);
-			  mqtt_subscribe(module_inst, VERSION_TOPIC "#", 1);
+			  mqtt_subscribe(module_inst, PUMP_TOPIC "#", 0);
+			  mqtt_subscribe(module_inst, RELAY1_TOPIC "#", 0);
+			  mqtt_subscribe(module_inst, RELAY2_TOPIC "#", 0);
+			  mqtt_subscribe(module_inst, LED_TOPIC "#", 0);
+			
+			  mqtt_subscribe(module_inst, UPGRADE_TOPIC "#", 0);
+			  mqtt_subscribe(module_inst, VERSION_TOPIC "#", 0);
 			printf("Preparation of MQTT has been completed.\r\n");
 		} else {
 			/* Cannot connect for some reason. */
@@ -222,10 +223,10 @@ static void mqtt_callback(struct mqtt_module *module_inst, int type, union mqtt_
 			else if (strncmp(data->recv_publish.topic, RELAY1_TOPIC, strlen(RELAY1_TOPIC)) == 0)
 			{
 				printf("%s >> ", RELAY1_TOPIC);
-				if (!(strcmp("on", data->recv_publish.msg))) {
+				if (strncmp("on", data->recv_publish.msg, data->recv_publish.msg_size) == 0) {
 					relay1_enable();
 				} 
-				else if (!(strcmp("off", data->recv_publish.msg))) {
+				else if (strncmp("off", data->recv_publish.msg, data->recv_publish.msg_size) == 0) {
 					relay1_disable();
 				}
 
@@ -233,19 +234,25 @@ static void mqtt_callback(struct mqtt_module *module_inst, int type, union mqtt_
 			else if (strncmp(data->recv_publish.topic, LED_TOPIC, strlen(LED_TOPIC)) == 0)
 			{
 				printf("%s >> ", LED_TOPIC);
-				if (!(strcmp("on", data->recv_publish.msg))) {
-					led1_on();
+				
+				if (strncmp("on", data->recv_publish.msg, data->recv_publish.msg_size) == 0) {
+					led2_on();
 				}
-				else if (!(strcmp("off", data->recv_publish.msg))) {
-					led1_off();
+				else if (strncmp("off", data->recv_publish.msg, data->recv_publish.msg_size) == 0) {
+					led2_off();
 				}
 
 			}
 			else if (strncmp(data->recv_publish.topic, RELAY2_TOPIC, strlen(RELAY2_TOPIC)) == 0)
 			{
 				printf("%s >> ", RELAY2_TOPIC);
-				//IMPLEMENT RELAY1
-				//port_pin_toggle_output_level(LED_0_PIN);
+				if (strncmp("on", data->recv_publish.msg, data->recv_publish.msg_size) == 0) {
+					relay2_enable();
+				}
+				else if (strncmp("off", data->recv_publish.msg, data->recv_publish.msg_size) == 0) {
+					relay2_disable();
+				}
+
 			}
 			else if (strncmp(data->recv_publish.topic, UPGRADE_TOPIC, strlen(UPGRADE_TOPIC)) == 0)
 			{
@@ -303,7 +310,8 @@ static void configure_mqtt(void)
 	mqtt_conf.timer_inst = &swt_module_inst;
 	mqtt_conf.recv_buffer = mqtt_buffer;
 	mqtt_conf.recv_buffer_size = MAIN_MQTT_BUFFER_SIZE;
-	mqtt_conf.port = 11353;
+	mqtt_conf.port = CLOUD_PORT;
+	//cloudmqtt port 11353
 
 	result = mqtt_init(&mqtt_inst, &mqtt_conf);
 	if (result < 0) {

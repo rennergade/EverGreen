@@ -14,6 +14,13 @@
 #define FAILURE              1
 
 
+extern volatile int wifi_connected;
+extern volatile int mqtt_connected;
+
+extern char mqtt_buffer[MAIN_MQTT_BUFFER_SIZE];
+
+
+
 #define CR '\r'                                                 /// Carriage Return
 #define LF '\n'                                                 /// Line feed
 #define BS '\b'                                                 /// backspace
@@ -113,7 +120,7 @@ int main(void)
 	
 	int wifi_result = SUCCESS;
 	    
-	uint8_t mqtt_send_buffer[MAIN_MQTT_BUFFER_SIZE];
+	uint8_t mqtt_send_buffer[MQTT_SEND_BUFFER_SIZE];
 
 
 	system_init();
@@ -127,19 +134,34 @@ int main(void)
 	
 	printf("Board initialized.\r\n");
 
-	
-
 	/* Connect to router. */
 	m2m_wifi_connect((char *)MAIN_WLAN_SSID, sizeof(MAIN_WLAN_SSID),
 	MAIN_WLAN_AUTH, (char *)MAIN_WLAN_PSK, M2M_WIFI_CH_ALL);
+	
+	while(!(wifi_connected)) {		
+		    /* Handle pending events from network controller. */
+		    m2m_wifi_handle_events(NULL);
+		    /* Checks the timer timeout. */
+		    sw_timer_task(&swt_module_inst);
+	}
+	
+	while(!(mqtt_connected)) {
+		/* Handle pending events from network controller. */
+		m2m_wifi_handle_events(NULL);
+		/* Checks the timer timeout. */
+		sw_timer_task(&swt_module_inst);
+	}
+	
+	
 	
 	configure_adc(MOISTURE_ANA_PIN); //configure moisture sensor analog
 	configure_i2c_temp(); //config i2c
 	configure_i2c_lux();
 	configure_i2c_callbacks_hdc();
 	configure_i2c_callbacks_tsl();
-
 	
+	
+		
 	for (int i = 0; i < MAX_ARGS; i++)
 		argv[i] = malloc(sizeof(char) * MAX_ARG_LENGTH);
 
@@ -167,12 +189,13 @@ int main(void)
 // 			RcvDownloadFwCmdByMQTT = 0;
 		//} TODO? IMPLEMENT FIRMWARE OVER MQTT
 		
-		if (MQTTCounter >= 20000)
+		if (MQTTCounter >= 3000000)
 		{
-			delay_ms(1000);
 			MQTTCounter = 0; //reset sensor counter
 
 			printf("Sending sensor values to Cloud.\r\n");
+			
+		
 			//temp
 // 			double temperature = 0;
 // 			double humidity = 0;
@@ -193,8 +216,9 @@ int main(void)
 			
 			printf("Lux: %d\r\n", lux_value);
 			
+			memset(mqtt_send_buffer, 0, sizeof(mqtt_send_buffer));
 			sprintf(mqtt_send_buffer, "%d", lux_value);
-			mqtt_publish(&mqtt_inst, LUX_TOPIC, mqtt_send_buffer, sizeof(lux_value), 1, 0);
+			mqtt_publish(&mqtt_inst, LUX_TOPIC, mqtt_send_buffer, strlen(mqtt_send_buffer), 0, 0);
 				
 			
 			//moisture
@@ -228,3 +252,5 @@ int main(void)
 
 	return 0;
 }
+
+
