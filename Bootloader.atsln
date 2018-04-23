@@ -15,6 +15,8 @@ Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "Bootloader", "Bootloader\Bo
 EndProject
 Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "winc1500_project", "winc1500_project\winc1500_project.cproj", "{E3A51A3A-64E8-4029-8C19-EF10892F9EF5}"
 EndProject
+Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "temp_sensor", "temp_sensor\temp_sensor.cproj", "{42B6E990-65B9-40B3-A7F3-B176D40DFDC2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM = Debug|ARM
@@ -45,6 +47,10 @@ Global
 		{E3A51A3A-64E8-4029-8C19-EF10892F9EF5}.Debug|ARM.Build.0 = Debug|ARM
 		{E3A51A3A-64E8-4029-8C19-EF10892F9EF5}.Release|ARM.ActiveCfg = Release|ARM
 		{E3A51A3A-64E8-4029-8C19-EF10892F9EF5}.Release|ARM.Build.0 = Release|ARM
+		{42B6E990-65B9-40B3-A7F3-B176D40DFDC2}.Debug|ARM.ActiveCfg = Debug|ARM
+		{42B6E990-65B9-40B3-A7F3-B176D40DFDC2}.Debug|ARM.Build.0 = Debug|ARM
+		{42B6E990-65B9-40B3-A7F3-B176D40DFDC2}.Release|ARM.ActiveCfg = Release|ARM
+		{42B6E990-65B9-40B3-A7F3-B176D40DFDC2}.Release|ARM.Build.0 = Release|ARM
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

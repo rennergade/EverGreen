@@ -25,9 +25,9 @@
 #endif
 
 //WiFI Macros
-#define SSID "AirPennNet-Device"                                                        /// SSID to connect to
+#define SSID "SNBP" //"AirPennNet-Device"                                                        /// SSID to connect to
 #define AUTH_TYPE M2M_WIFI_SEC_WPA_PSK                                                  /// authentication type
-#define WIFI_PASSWORD "penn1740wifi"                                                    /// password
+#define WIFI_PASSWORD "sn42betarho" // "penn1740wifi"                                                    /// password
 #define FW_HEADER_ADDRESS "http://www.seas.upenn.edu/~warcher/ese516/metadata.bin"      /// url for header address
 #define FIRMWARE_ADDRESS "http://www.seas.upenn.edu/~warcher/ese516/test-firmware.bin"  /// url for firmware address download
 #define MTU_HTTP 1500                                                                   /// maximum transmission unit (MTU) or maximum packet size for HTTP @details limited by Ethernet
