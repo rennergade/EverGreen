@@ -13,7 +13,6 @@
 #define BAUD_RATE 115200
 
 //Memory Location Macros
-#ifdef AT25DFX_H
 #define FW1_ERASE_ADDR 0x000000 /// Sector to start erasing at for 64kb
 #define FW2_ERASE_ADDR 0x3FFFC /// Sector to start erasing at for 64kb
 #define FW1_HEADER_ADDR 0x001000                /// Header for current or new firmware
@@ -25,10 +24,9 @@
 #define SIXTY_FOUR_KB 0x00FFFF
 #define THIRTY_TWO_KB SIXTY_FOUR_KB / 2
 #define FOUR_KB THIRTY_TWO_KB / 8
-#endif
 
 //Flash Macros
-#ifdef NVM_H_INCLUDED
+#ifdef AT25DFX_H
 #define FLASH_ROW_SIZE 256              /// number of bytes per row in flash memory
 #define AT25DFX_SPI SERCOM1             /// sercom for external flash
 #define AT25DFX_MEM_TYPE AT25DFX_081A   /// what chip is it
