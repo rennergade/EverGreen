@@ -1,5 +1,7 @@
 #include "wifi.h"
 
+
+//TODO: set up wifi deconfiguration
 #define FW_VERSION 0
 
 //Flash global vars

@@ -1,4 +1,5 @@
-
+#ifndef MQTT_H_
+#define MQTT_H_
 
 #include "asf.h"
 #include "driver/include/m2m_wifi.h"
@@ -11,17 +12,8 @@
 #define SENSOR_USER						"sensor/"
 #define FIRMWARE_USER						"firmware/"
 
-#define MQTT_USER		FIRMWARE_USER //CONFIGURE THIS VALUE FOR THE BOARD YOU NEED TO WORK WITH
+#define MQTT_USER		ACTUATOR_USER //CONFIGURE THIS VALUE FOR THE BOARD YOU NEED TO WORK WITH
 
-
-/* Max size of UART buffer. */
-#define MQTT_SEND_BUFFER_SIZE 64
-
-/* Max size of MQTT buffer. */
-#define MAIN_MQTT_BUFFER_SIZE 128
-
-/* Limitation of user name. */
-#define MAIN_CHAT_USER_NAME_SIZE 64
 
 // MQTT topics
 #define TEMPERATURE_TOPIC                "/g0/temp/" MQTT_USER
@@ -38,47 +30,58 @@
 
 #define VERSION_TOPIC                   "/g0/version/" MQTT_USER
 #define UPGRADE_TOPIC                   "/g0/upgrade/" MQTT_USER
-
-/*
- * A MQTT broker server which was connected.
- * m2m.eclipse.org is public MQTT broker.
- */
-static const char main_mqtt_broker[] = "deet.seas.upenn.edu";
+/* Max size of UART buffer. */
+#define MQTT_SEND_BUFFER_SIZE 64
+#define MAX_TOPICS 7
 
 //other broker services
 //"m10.cloudmqtt.com";
 //"broker.hivemq.com";
 
-
-/** Wi-Fi Settings */
-#define MAIN_WLAN_SSID      "SNBP"  //"AirPennNet-Device" /* < Destination SSID */
-#define MAIN_WLAN_AUTH        M2M_WIFI_SEC_WPA_PSK /* < Security manner */
-#define MAIN_WLAN_PSK        "sn42betarho" //"penn1740wifi" /* < Password for Destination SSID */
-
-#define CLOUD_PORT          1883
-
-
-/** Instance of Timer module. */
-struct sw_timer_module swt_module_inst;
-
-
-
-/* Instance of MQTT service. */
-struct mqtt_module mqtt_inst;
-
-/* Receive buffer of the MQTT service. */
-char mqtt_buffer[MAIN_MQTT_BUFFER_SIZE];
+/**
+ * @typedef mqtt_inst_config
+ * @brief struct containing configuration values for an MQTT instance
+ */
+typedef struct {
+  char* ssid;
+  uint32_t auth;
+  char* password;
+  uint16_t port;
+  char* broker_server;
+} mqtt_inst_config;
 
 
+typedef void (*callback)(); /// callback for topic function
+
+typedef struct {
+  char topic_name[MQTT_SEND_BUFFER_SIZE];
+  callback function;
+} topic_struct;
 
 uint8_t mqttfirmware_download;
+mqtt_inst_config *curr_mqtt_config;
 
-static void wifi_callback(uint8 msg_type, void *msg_data);
-static void socket_event_handler(SOCKET sock, uint8_t msg_type, void *msg_data);
-static void socket_resolve_handler(uint8_t *doamin_name, uint32_t server_ip);
-static void mqtt_callback(struct mqtt_module *module_inst, int type, union mqtt_data *data);
-static void configure_timer(void);
-void configure_mqtt(void);
+/**
+ * Register a topic that requests information from MQTT Broker
+ * @param topic_name name of topic to register
+ * @param function function callback for topic
+ */
+void register_request_topic(char topic_name[MQTT_SEND_BUFFER_SIZE], char wildcard, void (*function));
+
+/**
+ * Initialize mqtt conf struct to default values
+ * @param mqtt_conf pointer to mqtt_conf struct to use
+ */
+void get_mqtt_config_defaults(mqtt_inst_config *mqtt_conf);
+/**
+ * Disable mqtt to enable another TCP session
+ */
 void deconfigure_mqtt();
-int wifi_init(void);
-void publish_sensor_values(void);
+/**
+ * Initialize TCP session for MQTT with configuration from @p mqtt_conf
+ * @param  mqtt_conf configuration information for MQTT
+ * @return           1 if successful
+ */
+int mqtt_initialize(mqtt_inst_config* mqtt_conf);
+
+#endif

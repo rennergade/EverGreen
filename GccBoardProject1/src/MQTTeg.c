@@ -27,7 +27,23 @@
 #include "TSL2561.h"
 #include "hdc_1080.h"
 
+
+/* Max size of MQTT buffer. */
+#define MAIN_MQTT_BUFFER_SIZE 128
+
 static uint8_t RequestVersionByMQTT;
+
+/** Instance of Timer module. */
+struct sw_timer_module swt_module_inst;
+
+topic_struct registered_request_topics[MAX_TOPICS];
+uint8_t num_registered_request_topics = 0;
+
+/* Instance of MQTT service. */
+struct mqtt_module mqtt_inst;
+
+/* Receive buffer of the MQTT service. */
+char mqtt_buffer[MAIN_MQTT_BUFFER_SIZE];
 
 volatile int wifi_connected = 0;
 volatile int mqtt_connected = 0;
@@ -72,8 +88,8 @@ static void wifi_callback(uint8 msg_type, void *msg_data)
 		} else if (msg_wifi_state->u8CurrState == M2M_WIFI_DISCONNECTED) {
 			/* If Wi-Fi is disconnected. */
 			printf("Wi-Fi disconnected\r\n");
-			m2m_wifi_connect((char *)MAIN_WLAN_SSID, sizeof(MAIN_WLAN_SSID),
-					MAIN_WLAN_AUTH, (char *)MAIN_WLAN_PSK, M2M_WIFI_CH_ALL);
+			m2m_wifi_connect(curr_mqtt_config->ssid, strlen(curr_mqtt_config->ssid),
+					 curr_mqtt_config->auth, curr_mqtt_config->password, M2M_WIFI_CH_ALL);
 			/* Disconnect from MQTT broker. */
 			/* Force close the MQTT connection, because cannot send a disconnect message to the broker when network is broken. */
 			mqtt_disconnect(&mqtt_inst, 1);
@@ -84,10 +100,10 @@ static void wifi_callback(uint8 msg_type, void *msg_data)
 	case M2M_WIFI_REQ_DHCP_CONF:
 		msg_ip_addr = (uint8 *)msg_data;
 		printf("Wi-Fi IP is %u.%u.%u.%u\r\n",
-				msg_ip_addr[0], msg_ip_addr[1], msg_ip_addr[2], msg_ip_addr[3]);
+		       msg_ip_addr[0], msg_ip_addr[1], msg_ip_addr[2], msg_ip_addr[3]);
 		/* Try to connect to MQTT broker when Wi-Fi was connected. */
-		mqtt_connect(&mqtt_inst, main_mqtt_broker);
-		wifi_connected = 1; 
+		mqtt_connect(&mqtt_inst, curr_mqtt_config->broker_server);
+		wifi_connected = 1;
 		break;
 
 	default:
@@ -150,16 +166,12 @@ static void mqtt_callback(struct mqtt_module *module_inst, int type, union mqtt_
 		 * Or else retry to connect to broker server.
 		 */
 		if (data->sock_connected.result >= 0) {
-			
 			mqtt_connect_broker(module_inst, 1, NULL, NULL, MQTT_USER, NULL, NULL, 0, 0, 0);
-			
-			mqtt_connected = 1;
-			
-			
 
+			mqtt_connected = 1;
 		} else {
-			printf("Connect fail to server(%s)! retry it automatically.\r\n", main_mqtt_broker);
-			mqtt_connect(module_inst, main_mqtt_broker); /* Retry that. */
+			printf("Connect fail to server(%s)! retry it automatically.\r\n", curr_mqtt_config->broker_server);
+			mqtt_connect(module_inst, curr_mqtt_config->broker_server); /* Retry that. */
 		}
 	}
 	break;
@@ -167,15 +179,7 @@ static void mqtt_callback(struct mqtt_module *module_inst, int type, union mqtt_
 	case MQTT_CALLBACK_CONNECTED:
 		if (data->connected.result == MQTT_CONN_RESULT_ACCEPT) {
 			/* Subscribe chat topic. */
-			  module_inst->busy = 0;
-			  mqtt_subscribe(module_inst, PUMP_TOPIC "#", 0);
-			  mqtt_subscribe(module_inst, RELAY1_TOPIC "#", 0);
-			  mqtt_subscribe(module_inst, RELAY2_TOPIC "#", 0);
-			  mqtt_subscribe(module_inst, LED_TOPIC "#", 0);
-			
-			  mqtt_subscribe(module_inst, UPGRADE_TOPIC "#", 0);
-			  mqtt_subscribe(module_inst, VERSION_TOPIC "#", 0);
-			printf("Preparation of MQTT has been completed.\r\n");
+			module_inst->busy = 0;
 		} else {
 			/* Cannot connect for some reason. */
 			printf("MQTT broker declined your access! error code %d\r\n", data->connected.result);
@@ -184,67 +188,19 @@ static void mqtt_callback(struct mqtt_module *module_inst, int type, union mqtt_
 		break;
 
 	case MQTT_CALLBACK_RECV_PUBLISH:
-		if (data->recv_publish.topic != NULL && data->recv_publish.msg != NULL)
-		{
-			if (strncmp(data->recv_publish.topic, PUMP_TOPIC, strlen(PUMP_TOPIC)) == 0)
-			{
-					printf("%s >> ", PUMP_TOPIC);
-					run_pump(10000);
-				
-			}
-			else if (strncmp(data->recv_publish.topic, RELAY1_TOPIC, strlen(RELAY1_TOPIC)) == 0)
-			{
-					printf("%s >> ", RELAY1_TOPIC);
-					if (strncmp("on", data->recv_publish.msg, data->recv_publish.msg_size) == 0) {
-						relay1_enable();
-					} 
-					else if (strncmp("off", data->recv_publish.msg, data->recv_publish.msg_size) == 0) {
-						relay1_disable();
-					}
-				
-
-			}
-			else if (strncmp(data->recv_publish.topic, LED_TOPIC, strlen(LED_TOPIC)) == 0)
-			{
-
-					printf("%s >> ", LED_TOPIC);
-				
-					if (strncmp("on", data->recv_publish.msg, data->recv_publish.msg_size) == 0) {
-						led2_on();
-					}
-					else if (strncmp("off", data->recv_publish.msg, data->recv_publish.msg_size) == 0) {
-						led2_off();
-					}
-				
-
-			}
-			else if (strncmp(data->recv_publish.topic, RELAY2_TOPIC, strlen(RELAY2_TOPIC)) == 0)
-			{
-					printf("%s >> ", RELAY2_TOPIC);
-					if (strncmp("on", data->recv_publish.msg, data->recv_publish.msg_size) == 0) {
-						relay2_enable();
-					}
-					else if (strncmp("off", data->recv_publish.msg, data->recv_publish.msg_size) == 0) {
-						relay2_disable();
-					}
-				
-
-			}
-			else if (strncmp(data->recv_publish.topic, UPGRADE_TOPIC, strlen(UPGRADE_TOPIC)) == 0)
-			{
-					printf("%s >> ", UPGRADE_TOPIC);
-					mqttfirmware_download = 1;
-				
-			}
-			else
-			{
-				printf("Unknown topic: %s", data->recv_publish.topic);
-			}
-			for (uint8_t i; i < data->recv_publish.msg_size; i++)
-			{
-				printf("%c", data->recv_publish.msg[i]);
-			}
-			printf("\r\n");
+		if (data->recv_publish.topic != NULL && data->recv_publish.msg != NULL) {
+			printf("data->recv_publish.topic: %s\r\n", data->recv_publish.topic);
+			printf("topic name: %s\r\n", registered_request_topics[0].topic_name);
+			printf("data->recv_publish.topic_size: %d\r\n", data->recv_publish.topic_size);
+			printf("data size: %d\r\n", strlen(data->recv_publish.topic));
+			printf("topic size: %d\r\n", strlen(registered_request_topics[0].topic_name));
+			for (int i = 0; i < num_registered_request_topics; i++)
+				if (!strncmp(data->recv_publish.topic, registered_request_topics[i].topic_name, data->recv_publish.topic_size)) {
+					printf("MQTT requested: %s\r\n", data->recv_publish.topic);
+					printf("registered_request_topic: %s\r\n", registered_request_topics[0].topic_name);
+					printf("registered_function: %d\r\n", registered_request_topics[i].function);
+					registered_request_topics[i].function(0);
+				}
 		}
 		break;
 
@@ -262,6 +218,7 @@ static void mqtt_callback(struct mqtt_module *module_inst, int type, union mqtt_
 static void configure_timer(void)
 {
 	struct sw_timer_config swt_conf;
+
 	sw_timer_get_config_defaults(&swt_conf);
 
 	sw_timer_init(&swt_module_inst, &swt_conf);
@@ -282,7 +239,7 @@ void configure_mqtt(void)
 	mqtt_conf.timer_inst = &swt_module_inst;
 	mqtt_conf.recv_buffer = mqtt_buffer;
 	mqtt_conf.recv_buffer_size = MAIN_MQTT_BUFFER_SIZE;
-	mqtt_conf.port = CLOUD_PORT;
+	mqtt_conf.port = curr_mqtt_config->port;
 	//cloudmqtt port 11353
 
 	result = mqtt_init(&mqtt_inst, &mqtt_conf);
@@ -303,31 +260,33 @@ void configure_mqtt(void)
 void deconfigure_mqtt()
 {
 	uint8_t result;
+
 	result = mqtt_deinit(&mqtt_inst);
 	if (result < 0) {
-		printf("MQTT initialization failed. Error code is (%d)\r\n", result);
+		printf("MQTT deinitialization failed. Error code is (%d)\r\n", result);
 		while (1) {
 		}
 	}
 
 	result = mqtt_unregister_callback(&mqtt_inst);
 	if (result < 0) {
-		printf("MQTT register callback failed. Error code is (%d)\r\n", result);
+		printf("MQTT unregister callback failed. Error code is (%d)\r\n", result);
 		while (1) {
 		}
 	}
 	mqtt_disconnect(&mqtt_inst, 1);
 	socketDeinit();
-	
+	m2m_wifi_deinit(0);
+	nm_bsp_deinit();
 }
 /**
  * \brief Initialize the WiFi
  */
-int wifi_init(void) 
+int mqtt_initialize(mqtt_inst_config *new_mqtt_conf)
 {
 	tstrWifiInitParam param;
 	int8_t ret;
-
+	curr_mqtt_config = new_mqtt_conf;
 	/* Initialize the Timer. */
 	configure_timer();
 
@@ -336,7 +295,7 @@ int wifi_init(void)
 
 	/* Initialize the BSP. */
 	nm_bsp_init();
-	
+
 	printf("MQTT Configured.\r\n");
 
 	/* Initialize Wi-Fi parameters structure. */
@@ -349,68 +308,51 @@ int wifi_init(void)
 	if (M2M_SUCCESS != ret) {
 		printf("main: m2m_wifi_init call error!(%d)\r\n", ret);
 		return 1;
-	} 
-		printf("main: m2m_wifi_init call success!(%d)\r\n", ret);
-	
+	}
+	printf("main: m2m_wifi_init call success!(%d)\r\n", ret);
+
 	/* Initialize socket interface. */
 	socketInit();
 	registerSocketCallback(socket_event_handler, socket_resolve_handler);
 	printf("Sockets initialized.\r\n");
-	
+
 	return 0;
 }
 
-void publish_sensor_values(void) {
-	
-		uint8_t mqtt_send_buffer[MQTT_SEND_BUFFER_SIZE];
-		printf("Publishing version to %s\r\n", VERSION_TOPIC);
-		//version
-		memset(mqtt_send_buffer, 0, sizeof(mqtt_send_buffer));
-		sprintf(mqtt_send_buffer, "%s", APP_VERSION); //set to current firmware
-		mqtt_publish(&mqtt_inst, VERSION_TOPIC, mqtt_send_buffer, strlen(mqtt_send_buffer), 0, 0);
+void register_request_topic(char topic_name[MQTT_SEND_BUFFER_SIZE], char wildcard, void (*function))
+{
+	if (num_registered_request_topics < MAX_TOPICS) {
+		topic_struct new_topic;
+		uint32_t topic_name_len = strlen(topic_name);
+		strcpy(new_topic.topic_name, topic_name);
+		printf("new_topic.topic_name: %s\r\n", new_topic.topic_name);
+		char topic_subscribe_str[MQTT_SEND_BUFFER_SIZE+1];
+		strcpy(topic_subscribe_str, topic_name);
+		topic_subscribe_str[topic_name_len] = wildcard;
+		topic_subscribe_str[topic_name_len+1] = '\0';
 		
-		
-		//temp
-		set_resolution(FOURTEEN_BIT_RESOLUTION,FOURTEEN_BIT_RESOLUTION);
-		double temperature = get_temp();
-		double humidity = get_humidity();
-		
-		printf("Temperature: %.02f\r\n", temperature);
-		printf("Humidity: %.02f\r\n", humidity);
+		if(mqtt_subscribe(&mqtt_inst, topic_subscribe_str, 0)) {
+			printf("failed to subscribe topic: %s\r\n", topic_subscribe_str);
+			return;	
+		}
+		new_topic.function = function;
+		memcpy((int) &registered_request_topics[num_registered_request_topics++], &new_topic, sizeof(topic_struct));
+		printf("[register_request_topic] successfully registered request topic %s and callback!\r\n", registered_request_topics[num_registered_request_topics-1].topic_name);
+	} else {
+		printf("[register_request_topic] max number of topics already registered.\r\n");
+	}
+}
 
-		
-		memset(mqtt_send_buffer, 0, sizeof(mqtt_send_buffer));
-		sprintf(mqtt_send_buffer, "%.02f", temperature);
-		mqtt_publish(&mqtt_inst, TEMPERATURE_TOPIC, mqtt_send_buffer, strlen(mqtt_send_buffer), 0, 0);
-		
-		//humidity
-		memset(mqtt_send_buffer, 0, sizeof(mqtt_send_buffer));
-		sprintf(mqtt_send_buffer, "%.02f", humidity);
-		mqtt_publish(&mqtt_inst, HUMIDITY_TOPIC, mqtt_send_buffer, strlen(mqtt_send_buffer), 0, 0);
-		
-		
-		//lux
-		
-		power_on_tsl2561();
-		uint32_t lux_value = get_lux();
-		power_off_tsl2561();
-		
-		printf("Lux: %d\r\n", lux_value);
-		
-		
-		memset(mqtt_send_buffer, 0, sizeof(mqtt_send_buffer));
-		sprintf(mqtt_send_buffer, "%d", lux_value);
-		mqtt_publish(&mqtt_inst, LUX_TOPIC, mqtt_send_buffer, strlen(mqtt_send_buffer), 0, 0);
-		
-		
-		//moisture
-		float m_value = get_moisture();
-		
-		printf("Moisture: %.02f\r\n", m_value);
-		
-		memset(mqtt_send_buffer, 0, sizeof(mqtt_send_buffer));
-		sprintf(mqtt_send_buffer, "%.02f", m_value);
-		mqtt_publish(&mqtt_inst, MOISTURE_TOPIC, mqtt_send_buffer, strlen(mqtt_send_buffer), 0, 0);
-		
-	
+
+void publish_to_topic(char topic[MAIN_MQTT_BUFFER_SIZE], uint8_t data[MQTT_SEND_BUFFER_SIZE], uint32_t data_len) {
+	mqtt_publish(&mqtt_inst, topic, data, data_len, 0, 0);
+}
+
+void get_mqtt_config_defaults(mqtt_inst_config *mqtt_conf)
+{
+	mqtt_conf->ssid = "AirPennNet-Device";
+	mqtt_conf->auth = M2M_WIFI_SEC_WPA_PSK;
+	mqtt_conf->password = "penn1740wifi";
+	mqtt_conf->port = 1883;
+	mqtt_conf->broker_server = "deet.seas.upenn.edu";
 }
