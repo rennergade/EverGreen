@@ -28,9 +28,6 @@
 #include "hdc_1080.h"
 
 
-/* Max size of MQTT buffer. */
-#define MAIN_MQTT_BUFFER_SIZE 128
-
 static uint8_t RequestVersionByMQTT;
 
 /** Instance of Timer module. */

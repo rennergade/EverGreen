@@ -42,6 +42,7 @@ wifi_config *current_wifi_config;
 
 void get_default_wifi_config(wifi_config *wifi_configuration);
 void configure_wifi_module(wifi_config *wifi_configuration);
+void deconfigure_wifi_module();
 bool check_for_update();
 bool download_firmware();
 

@@ -645,6 +645,15 @@ void configure_wifi_module(wifi_config *wifi_configuration)
 	}
 }
 
+void deconfigure_wifi_module() {
+	socketDeinit();
+	http_client_unregister_callback(&http_client_module_inst);
+	http_client_close(&http_client_module_inst);
+	http_client_deinit(&http_client_module_inst);
+	m2m_wifi_deinit(0);
+	nm_bsp_deinit();
+}
+
 bool check_for_update()
 {
 	m2m_wifi_request_dhcp_client();

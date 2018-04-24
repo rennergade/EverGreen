@@ -43,7 +43,8 @@ void request_relay_change(uint8_t on_off)
 	printf("relay change requested w value: %d\r\n", on_off);
 }
 
-void request_firmware_download()
+//NOTE: argument is not used
+void request_firmware_download(uint8_t on_off)
 {
 	printf("firmware download requested\r\n");
 	deconfigure_mqtt();
@@ -64,6 +65,7 @@ void request_firmware_download()
 	} else {
 		printf("No update found.\r\n");
 	}
+	deconfigure_wifi_module();
 }
 
 

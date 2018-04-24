@@ -7,6 +7,8 @@
 #include "iot/sw_timer.h"
 #include "socket/include/socket.h"
 
+
+
 //BOARD USER NAMES
 #define ACTUATOR_USER						"actuator/"
 #define SENSOR_USER						"sensor/"
@@ -32,6 +34,7 @@
 #define UPGRADE_TOPIC                   "/g0/upgrade/" MQTT_USER
 /* Max size of UART buffer. */
 #define MQTT_SEND_BUFFER_SIZE 64
+#define MAIN_MQTT_BUFFER_SIZE 128
 #define MAX_TOPICS 7
 
 //other broker services
@@ -83,5 +86,8 @@ void deconfigure_mqtt();
  * @return           1 if successful
  */
 int mqtt_initialize(mqtt_inst_config* mqtt_conf);
+
+
+void publish_to_topic(char topic[MAIN_MQTT_BUFFER_SIZE], uint8_t data[MQTT_SEND_BUFFER_SIZE], uint32_t data_len);
 
 #endif
