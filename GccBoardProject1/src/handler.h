@@ -2,6 +2,10 @@
 #include <usart.h>
 #include "delay.h"
 
+#define BL_VERSION "0.0.0" /// bootloader version info
+
+#define APP_VERSION "0.0.0"/// application version info
+
 //defines
 //I2C
 #define CONF_I2C_MASTER_MODULE_TEMP SERCOM3

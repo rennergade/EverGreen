@@ -2,6 +2,16 @@
 # Automatically-generated file. Do not edit or delete the file
 ################################################################################
 
+..\evergreen-lib\component-configurations.c
+
+..\evergreen-lib\debug.c
+
+..\evergreen-lib\hdc_1080.c
+
+..\evergreen-lib\TSL2561.c
+
+..\evergreen-lib\wifi.c
+
 src\ASF\common2\components\memory\serial_flash\at25dfx\at25dfx.c
 
 src\ASF\common\components\wifi\winc1500\bsp\source\nm_bsp_samd21.c
@@ -46,6 +56,8 @@ src\ASF\sam0\drivers\extint\extint_callback.c
 
 src\ASF\sam0\drivers\extint\extint_sam_d_r_h\extint.c
 
+src\ASF\sam0\drivers\nvm\nvm.c
+
 src\ASF\sam0\drivers\sercom\spi\spi.c
 
 src\ASF\sam0\drivers\sercom\spi\spi_interrupt.c
@@ -54,15 +66,13 @@ src\ASF\sam0\drivers\tcc\tcc.c
 
 src\ASF\sam0\drivers\tcc\tcc_callback.c
 
-src\HDC1080\hdc1080.c
+src\iot\http\http_client.c
 
 src\iot\stream_writer.c
 
 src\iot\sw_timer.c
 
 src\MQTTeg.c
-
-src\TSL2561\TSL2561.c
 
 src\ASF\common2\services\delay\sam0\systick_counter.c
 

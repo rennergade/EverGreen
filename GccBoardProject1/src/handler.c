@@ -2,14 +2,8 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include "handler.h"
-#include "TSL2561/TSL2561.h"
-#include "HDC1080/hdc1080.h"
-
-
-#define BL_VERSION "0.0.0" /// bootloader version info
-
-#define APP_VERSION "0.0.0"/// application version info
-
+#include "TSL2561.h"
+#include "hdc_1080.h"
 
 
 /// Available GPIO pins for A and B ports
@@ -199,17 +193,18 @@ void read_sensor(char *sensor_name, int readings, int interval_ms)
 	static uint8_t read_buffer[10];
 	
 	if(!strcmp("lux", sensor_name)) {
-		tsl2561_init();
-		uint32_t lux_value = getLuminosity();
-		printf("Current lux: %d\r\n", lux_value);
+		printf("Lux Device ID: 0x%02x\r\n", get_tsl2561_device_id());
+		power_on_tsl2561();
+		printf("Current Lux: %d\r\n", get_lux());
 	}
 	
 	if(!strcmp("temp", sensor_name)) {
-		double temperature = 0;
-		double humidity = 0;
-		int errorcode = hdc1080_measure(&temperature, &humidity);
-		if (errorcode) printf("Error reading HDC1080\r\n");
-		else printf("Current temperature: %d\r\n Current humidity: %d\r\n", temperature, humidity);
+		set_resolution(FOURTEEN_BIT_RESOLUTION,FOURTEEN_BIT_RESOLUTION);
+		double temperature, humidity;
+		temperature = get_temp();
+		humidity = get_humidity();
+	
+		printf("Current temperature: %f\r\n Current humidity: %f\r\n", temperature, humidity);
 	}
 	
 		
@@ -220,6 +215,8 @@ void read_sensor(char *sensor_name, int readings, int interval_ms)
 		
 		printf("Current moisture: %.02f %% \r\n", m_value);
 	}
+		
+	
 }
 
 /**
@@ -697,40 +694,6 @@ void configure_i2c_callbacks_tsl(void)
 				     I2C_MASTER_CALLBACK_WRITE_COMPLETE);
 	i2c_master_enable_callback(&i2c_tsl_instance,
 				   I2C_MASTER_CALLBACK_WRITE_COMPLETE);
-}
-
-
-/**
- * Configures USART for PA20 and PA21.
- *
- * Config as follows:
- *      @li Baudrate: 115200
- *      @li RX Pin: PA20
- *      @li TX Pin: PA21
- *      @li SERCOM: SERCOM3
- */
-void configure_usart(void)
-{
-	struct usart_config config_usart;
-
-	usart_get_config_defaults(&config_usart);
-	config_usart.baudrate = 9600;
-	config_usart.mux_setting = EDBG_CDC_SERCOM_MUX_SETTING;
-	config_usart.pinmux_pad0 = EDBG_CDC_SERCOM_PINMUX_PAD0;
-	config_usart.pinmux_pad1 = EDBG_CDC_SERCOM_PINMUX_PAD1;
-	config_usart.pinmux_pad2 = EDBG_CDC_SERCOM_PINMUX_PAD2;
-	config_usart.pinmux_pad3 = EDBG_CDC_SERCOM_PINMUX_PAD3;
-
-	
-	//config_usart.mux_setting = USART_RX_3_TX_2_XCK_3;
-	//config_usart.pinmux_pad0 = PINMUX_UNUSED;
-	//config_usart.pinmux_pad1 = PINMUX_UNUSED;
-	//config_usart.pinmux_pad2 = PINMUX_PA20D_SERCOM3_PAD2;
-	//config_usart.pinmux_pad3 = PINMUX_PA21D_SERCOM3_PAD3;
-
-	stdio_serial_init(&usart_instance, EDBG_CDC_MODULE, &config_usart);
-
-	usart_enable(&usart_instance);
 }
 
 

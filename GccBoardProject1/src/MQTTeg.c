@@ -1,13 +1,5 @@
-/** \mainpage
- * \section intro Introduction
- * This example demonstrates the use of the WINC1500 with the SAMD21 Xplained Pro
- * board to implement an MQTT based chat.
- * It uses the following hardware:
- * - the SAMD21 Xplained Pro.
- * - the WINC1500 on EXT1.
- *
- * \section files Main Files
- * - main.c : Initialize the WINC1500, connect to MQTT broker and chat with the other devices.
+/**  * \section files Main Files
+ * - main.c : Initialize the WINC1500, connect to MQTT broker and communicate with the other devices.
  * - mqtt.h : Implementation of MQTT 3.1
  *
  * \section usage Usage
@@ -20,39 +12,20 @@
  * -# Build the program and download it into the board.
  * -# On the computer, open and configure a terminal application as the follows.
  * \code
- *    Baud Rate : 115200
+ *    Baud Rate : 9600
  *    Data : 8bit
  *    Parity bit : none
  *    Stop bit : 1bit
  *    Flow control : none
  *    Line-Ending style : LF or CR+LF
  * \endcode
- * -# Start the application.
- * -# In the terminal window, First of all enter the user name through the terminal window.
- * -# And after the text of the following is displayed, please enjoy the chat.
- * -# Initialization operations takes a few minutes according to the network environment.
- * \code
- *    Preparation of the chat has been completed.
- * \endcode
- *
- * \section known_issue Known Issue
- * -# The user name cannot contain space (' ').
- * -# Cannot send more than 128 bytes.
- * -# User name must be unique. If someone uses the same user name, Which one will be disconnected.
- * -# USART interface has not error detection procedure. So sometimes serial input is broken.
- *
- * \section compinfo Compilation Information
- * This software was written for the GNU GCC compiler using Atmel Studio 6.2
- * Other compilers may or may not work.
- *
- * \section contactinfo Contact Information
- * For further information, visit
- * <A href="http://www.atmel.com">Atmel</A>.\n
  */
 
 #include "asf.h"
 #include "MQTTeg.h"
 #include "handler.h"
+#include "TSL2561.h"
+#include "hdc_1080.h"
 
 static uint8_t RcvDownloadFwCmdByMQTT;
 static uint8_t RequestVersionByMQTT;
@@ -216,53 +189,53 @@ static void mqtt_callback(struct mqtt_module *module_inst, int type, union mqtt_
 		{
 			if (strncmp(data->recv_publish.topic, PUMP_TOPIC, strlen(PUMP_TOPIC)) == 0)
 			{
-				printf("%s >> ", PUMP_TOPIC);
-				//IMPLEMENT PUMP
-				run_pump(10000);
+					printf("%s >> ", PUMP_TOPIC);
+					run_pump(10000);
+				
 			}
 			else if (strncmp(data->recv_publish.topic, RELAY1_TOPIC, strlen(RELAY1_TOPIC)) == 0)
 			{
-				printf("%s >> ", RELAY1_TOPIC);
-				if (strncmp("on", data->recv_publish.msg, data->recv_publish.msg_size) == 0) {
-					relay1_enable();
-				} 
-				else if (strncmp("off", data->recv_publish.msg, data->recv_publish.msg_size) == 0) {
-					relay1_disable();
-				}
+					printf("%s >> ", RELAY1_TOPIC);
+					if (strncmp("on", data->recv_publish.msg, data->recv_publish.msg_size) == 0) {
+						relay1_enable();
+					} 
+					else if (strncmp("off", data->recv_publish.msg, data->recv_publish.msg_size) == 0) {
+						relay1_disable();
+					}
+				
 
 			}
 			else if (strncmp(data->recv_publish.topic, LED_TOPIC, strlen(LED_TOPIC)) == 0)
 			{
-				printf("%s >> ", LED_TOPIC);
+
+					printf("%s >> ", LED_TOPIC);
 				
-				if (strncmp("on", data->recv_publish.msg, data->recv_publish.msg_size) == 0) {
-					led2_on();
-				}
-				else if (strncmp("off", data->recv_publish.msg, data->recv_publish.msg_size) == 0) {
-					led2_off();
-				}
+					if (strncmp("on", data->recv_publish.msg, data->recv_publish.msg_size) == 0) {
+						led2_on();
+					}
+					else if (strncmp("off", data->recv_publish.msg, data->recv_publish.msg_size) == 0) {
+						led2_off();
+					}
+				
 
 			}
 			else if (strncmp(data->recv_publish.topic, RELAY2_TOPIC, strlen(RELAY2_TOPIC)) == 0)
 			{
-				printf("%s >> ", RELAY2_TOPIC);
-				if (strncmp("on", data->recv_publish.msg, data->recv_publish.msg_size) == 0) {
-					relay2_enable();
-				}
-				else if (strncmp("off", data->recv_publish.msg, data->recv_publish.msg_size) == 0) {
-					relay2_disable();
-				}
+					printf("%s >> ", RELAY2_TOPIC);
+					if (strncmp("on", data->recv_publish.msg, data->recv_publish.msg_size) == 0) {
+						relay2_enable();
+					}
+					else if (strncmp("off", data->recv_publish.msg, data->recv_publish.msg_size) == 0) {
+						relay2_disable();
+					}
+				
 
 			}
 			else if (strncmp(data->recv_publish.topic, UPGRADE_TOPIC, strlen(UPGRADE_TOPIC)) == 0)
 			{
-				printf("%s >> ", UPGRADE_TOPIC);
-				RcvDownloadFwCmdByMQTT = 1;
-			}
-			else if (strncmp(data->recv_publish.topic, VERSION_TOPIC, strlen(VERSION_TOPIC)) == 0)
-			{
-				printf("%s >> ", VERSION_TOPIC);
-				RequestVersionByMQTT = 1;
+					printf("%s >> ", UPGRADE_TOPIC);
+					RcvDownloadFwCmdByMQTT = 1;
+				
 			}
 			else
 			{
@@ -300,7 +273,7 @@ static void configure_timer(void)
 /**
  * \brief Configure MQTT service.
  */
-static void configure_mqtt(void)
+void configure_mqtt(void)
 {
 	struct mqtt_config mqtt_conf;
 	int result;
@@ -327,7 +300,9 @@ static void configure_mqtt(void)
 		}
 	}
 }
-
+/**
+ * \brief Initialize the WiFi
+ */
 int wifi_init(void) 
 {
 	tstrWifiInitParam param;
@@ -363,4 +338,59 @@ int wifi_init(void)
 	printf("Sockets initialized.\r\n");
 	
 	return 0;
+}
+
+void publish_sensor_values(void) {
+	
+		uint8_t mqtt_send_buffer[MQTT_SEND_BUFFER_SIZE];
+		printf("Publishing version to %s\r\n", VERSION_TOPIC);
+		//version
+		memset(mqtt_send_buffer, 0, sizeof(mqtt_send_buffer));
+		sprintf(mqtt_send_buffer, "%s", APP_VERSION); //set to current firmware
+		mqtt_publish(&mqtt_inst, VERSION_TOPIC, mqtt_send_buffer, strlen(mqtt_send_buffer), 0, 0);
+		
+		
+		//temp
+		set_resolution(FOURTEEN_BIT_RESOLUTION,FOURTEEN_BIT_RESOLUTION);
+		double temperature = get_temp();
+		double humidity = get_humidity();
+		
+		printf("Temperature: %.02f\r\n", temperature);
+		printf("Humidity: %.02f\r\n", humidity);
+
+		
+		memset(mqtt_send_buffer, 0, sizeof(mqtt_send_buffer));
+		sprintf(mqtt_send_buffer, "%.02f", temperature);
+		mqtt_publish(&mqtt_inst, TEMPERATURE_TOPIC, mqtt_send_buffer, strlen(mqtt_send_buffer), 0, 0);
+		
+		//humidity
+		memset(mqtt_send_buffer, 0, sizeof(mqtt_send_buffer));
+		sprintf(mqtt_send_buffer, "%.02f", humidity);
+		mqtt_publish(&mqtt_inst, HUMIDITY_TOPIC, mqtt_send_buffer, strlen(mqtt_send_buffer), 0, 0);
+		
+		
+		//lux
+		
+		power_on_tsl2561();
+		uint32_t lux_value = get_lux();
+		power_off_tsl2561();
+		
+		printf("Lux: %d\r\n", lux_value);
+		
+		
+		memset(mqtt_send_buffer, 0, sizeof(mqtt_send_buffer));
+		sprintf(mqtt_send_buffer, "%d", lux_value);
+		mqtt_publish(&mqtt_inst, LUX_TOPIC, mqtt_send_buffer, strlen(mqtt_send_buffer), 0, 0);
+		
+		
+		//moisture
+		float m_value = get_moisture();
+		
+		printf("Moisture: %.02f\r\n", m_value);
+		
+		memset(mqtt_send_buffer, 0, sizeof(mqtt_send_buffer));
+		sprintf(mqtt_send_buffer, "%.02f", m_value);
+		mqtt_publish(&mqtt_inst, MOISTURE_TOPIC, mqtt_send_buffer, strlen(mqtt_send_buffer), 0, 0);
+		
+	
 }
