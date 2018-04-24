@@ -76,8 +76,6 @@ src\MQTTeg.c
 
 src\ASF\common2\services\delay\sam0\systick_counter.c
 
-src\ASF\sam0\components\sensor\at30tse75x\at30tse75x.c
-
 src\ASF\sam0\drivers\adc\adc_sam_d_r_h\adc.c
 
 src\ASF\sam0\drivers\sercom\i2c\i2c_sam0\i2c_master.c

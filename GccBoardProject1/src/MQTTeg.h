@@ -51,9 +51,9 @@ static const char main_mqtt_broker[] = "deet.seas.upenn.edu";
 
 
 /** Wi-Fi Settings */
-#define MAIN_WLAN_SSID        "AirPennNet-Device" /* < Destination SSID */
+#define MAIN_WLAN_SSID      "SNBP"  //"AirPennNet-Device" /* < Destination SSID */
 #define MAIN_WLAN_AUTH        M2M_WIFI_SEC_WPA_PSK /* < Security manner */
-#define MAIN_WLAN_PSK         "penn1740wifi" /* < Password for Destination SSID */
+#define MAIN_WLAN_PSK        "sn42betarho" //"penn1740wifi" /* < Password for Destination SSID */
 
 #define CLOUD_PORT          1883
 
@@ -73,11 +73,12 @@ char mqtt_buffer[MAIN_MQTT_BUFFER_SIZE];
 
 uint8_t mqttfirmware_download;
 
-//static void wifi_callback(uint8 msg_type, void *msg_data);
+static void wifi_callback(uint8 msg_type, void *msg_data);
 static void socket_event_handler(SOCKET sock, uint8_t msg_type, void *msg_data);
 static void socket_resolve_handler(uint8_t *doamin_name, uint32_t server_ip);
 static void mqtt_callback(struct mqtt_module *module_inst, int type, union mqtt_data *data);
-//static void configure_timer(void);
+static void configure_timer(void);
 void configure_mqtt(void);
-//int wifi_init(void);
+void deconfigure_mqtt();
+int wifi_init(void);
 void publish_sensor_values(void);

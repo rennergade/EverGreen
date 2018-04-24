@@ -638,7 +638,7 @@ void configure_wifi_module(wifi_config *wifi_configuration)
 	printf("main: connecting to WiFi AP %s...\r\n", wifi_configuration->ssid);
 	ret = m2m_wifi_connect(wifi_configuration->ssid, strlen(wifi_configuration->ssid), wifi_configuration->auth_type, wifi_configuration->password, M2M_WIFI_CH_ALL);
 	if (M2M_SUCCESS == ret) {
-		printf("successfully connected");
+		printf("successfully connected\r\n");
 		current_wifi_config = wifi_configuration;
 	}
 }

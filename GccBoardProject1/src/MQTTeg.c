@@ -27,7 +27,6 @@
 #include "TSL2561.h"
 #include "hdc_1080.h"
 
-static uint8_t RcvDownloadFwCmdByMQTT;
 static uint8_t RequestVersionByMQTT;
 
 volatile int wifi_connected = 0;
@@ -234,7 +233,7 @@ static void mqtt_callback(struct mqtt_module *module_inst, int type, union mqtt_
 			else if (strncmp(data->recv_publish.topic, UPGRADE_TOPIC, strlen(UPGRADE_TOPIC)) == 0)
 			{
 					printf("%s >> ", UPGRADE_TOPIC);
-					RcvDownloadFwCmdByMQTT = 1;
+					mqttfirmware_download = 1;
 				
 			}
 			else
@@ -299,6 +298,27 @@ void configure_mqtt(void)
 		while (1) {
 		}
 	}
+}
+
+void deconfigure_mqtt()
+{
+	uint8_t result;
+	result = mqtt_deinit(&mqtt_inst);
+	if (result < 0) {
+		printf("MQTT initialization failed. Error code is (%d)\r\n", result);
+		while (1) {
+		}
+	}
+
+	result = mqtt_unregister_callback(&mqtt_inst);
+	if (result < 0) {
+		printf("MQTT register callback failed. Error code is (%d)\r\n", result);
+		while (1) {
+		}
+	}
+	mqtt_disconnect(&mqtt_inst, 1);
+	socketDeinit();
+	
 }
 /**
  * \brief Initialize the WiFi
