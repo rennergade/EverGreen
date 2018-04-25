@@ -109,7 +109,7 @@ uint8_t get_tsl2561_device_id()
 uint16_t get_chan0()
 {
 	//TODO: add way to change this
-	delay_ms(403);
+	delay_ms(443);
 	//HAVE TO READ LOW REGISTER BEFORE HIGH REG PER DATASHEET
 	return read_byte(CMD_BIT | CHAN0_LOW_REG) | (read_byte(CMD_BIT | CHAN0_HIGH_REG) << 8);
 }
@@ -117,7 +117,7 @@ uint16_t get_chan0()
 uint16_t get_chan1()
 {
 	//TODO: add way to change this
-	delay_ms(403);
+	delay_ms(443);
 	return read_byte(CMD_BIT | CHAN1_LOW_REG) | (read_byte(CMD_BIT | CHAN1_HIGH_REG) << 8);
 }
 

@@ -186,17 +186,18 @@ static void mqtt_callback(struct mqtt_module *module_inst, int type, union mqtt_
 
 	case MQTT_CALLBACK_RECV_PUBLISH:
 		if (data->recv_publish.topic != NULL && data->recv_publish.msg != NULL) {
-			printf("data->recv_publish.topic: %s\r\n", data->recv_publish.topic);
-			printf("topic name: %s\r\n", registered_request_topics[0].topic_name);
-			printf("data->recv_publish.topic_size: %d\r\n", data->recv_publish.topic_size);
-			printf("data size: %d\r\n", strlen(data->recv_publish.topic));
-			printf("topic size: %d\r\n", strlen(registered_request_topics[0].topic_name));
+			//printf("data->recv_publish.topic: %s\r\n", data->recv_publish.topic);
+			//printf("topic name: %s\r\n", registered_request_topics[0].topic_name);
+			//printf("data->recv_publish.topic_size: %d\r\n", data->recv_publish.topic_size);
+			//printf("data size: %d\r\n", strlen(data->recv_publish.topic));
+			//printf("topic size: %d\r\n", strlen(registered_request_topics[0].topic_name));
 			for (int i = 0; i < num_registered_request_topics; i++)
-				if (!strncmp(data->recv_publish.topic, registered_request_topics[i].topic_name, data->recv_publish.topic_size)) {
+				if (0 == strncmp(data->recv_publish.topic, registered_request_topics[i].topic_name, data->recv_publish.topic_size)) {
 					printf("MQTT requested: %s\r\n", data->recv_publish.topic);
+					printf("options: %s\r\n", data->recv_publish.msg);
 					printf("registered_request_topic: %s\r\n", registered_request_topics[0].topic_name);
 					printf("registered_function: %d\r\n", registered_request_topics[i].function);
-					registered_request_topics[i].function(data->recv_publish.msg);
+					registered_request_topics[i].function(atoi(data->recv_publish.msg));
 				}
 		}
 		break;
@@ -343,6 +344,7 @@ void register_request_topic(char topic_name[MQTT_SEND_BUFFER_SIZE], char wildcar
 
 void publish_to_topic(char topic[MAIN_MQTT_BUFFER_SIZE], uint8_t data[MQTT_SEND_BUFFER_SIZE], uint32_t data_len) {
 	mqtt_publish(&mqtt_inst, topic, data, data_len, 0, 0);
+	printf("%s, %s\r\n", topic, data);
 }
 
 void get_mqtt_config_defaults(mqtt_inst_config *mqtt_conf)

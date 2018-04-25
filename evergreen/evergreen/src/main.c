@@ -13,7 +13,7 @@
 
 #define FIRMWARE_VERSION 0
 
-#define COUNTER_MAX 30000000000 //1 minute in cycles
+#define COUNTER_MAX 40000 //1 minute in cycles
 #define WIFI_SUCCESS              0
 #define WIFI_FAILURE              1
 
@@ -21,6 +21,9 @@ extern volatile int wifi_connected;
 extern volatile int mqtt_connected;
 
 struct usart_module usart_instance;
+
+struct adc_module adc_instance;
+
 
 
 /**
@@ -36,10 +39,45 @@ void configure_port_pins_set(int pin)
 	port_pin_set_config(pin, &config_port_pin);
 }
 
+void configure_adc(int pin)
+{
+	struct adc_config config_adc;
+
+	adc_get_config_defaults(&config_adc);
+	config_adc.positive_input = pin;
+	config_adc.reference = ADC_REFERENCE_INTVCC0;
+	config_adc.clock_prescaler = ADC_CLOCK_PRESCALER_DIV16;
+	adc_init(&adc_instance, ADC, &config_adc);
+	adc_enable(&adc_instance);
+}
+
+float get_moisture(void)
+{
+	// turn on sensor
+	configure_port_pins_set(PIN_PA17);
+	port_pin_set_output_level(PIN_PA17, true);
+	
+	delay_ms(500);
+	
+	// read ADC
+	uint16_t adc_result;
+	adc_start_conversion(&adc_instance);
+	/* Wait for conversion to be done and read out result */
+	do {
+	} while (adc_read(&adc_instance, &adc_result) == STATUS_BUSY);
+	float moisture = (adc_result/4095.0f)*(100.0f);
+	
+	//turn off sensor
+	port_pin_set_output_level(PIN_PA17, false);
+	
+
+	return moisture;	
+}
+
 
 void led_request_callback(uint8_t options) {
 		configure_port_pins_set(PIN_PA03);
-		port_pin_set_output_level(PIN_PA03, false);
+		port_pin_set_output_level(PIN_PA03, options);
 }
 
 void pump_request_callback(uint32_t options)
@@ -92,17 +130,21 @@ void publish_sensors()
 	
 	double temp = get_temp();
 	double humidity = get_humidity();
+	printf("tsl device id 0x%02x", get_tsl2561_device_id());
 	power_on_tsl2561();
 	int lux = get_lux();
 	power_off_tsl2561();
+	float moisture = get_moisture();
 	
-	char mqtt_array[MQTT_SEND_BUFFER_SIZE];
+	char mqtt_array[MQTT_SEND_BUFFER_SIZE] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+	sprintf(mqtt_array, "%.2f", moisture);
+	publish_to_topic(MOISTURE_TOPIC, mqtt_array, strlen(mqtt_array));
 	sprintf(mqtt_array, "%d", lux);
-	publish_to_topic(LUX_TOPIC, mqtt_array, sizeof(mqtt_array));
-	sprintf(mqtt_array, "%2.3f", temp);
-	publish_to_topic(TEMPERATURE_TOPIC, mqtt_array, sizeof(mqtt_array));
-	sprintf(mqtt_array, "%d", humidity);
-	publish_to_topic(HUMIDITY_TOPIC, mqtt_array, sizeof(mqtt_array));
+	publish_to_topic(LUX_TOPIC, mqtt_array, strlen(mqtt_array));
+	sprintf(mqtt_array, "%2.2f", temp);
+	publish_to_topic(TEMPERATURE_TOPIC, mqtt_array, strlen(mqtt_array));
+	sprintf(mqtt_array, "%2.2f", humidity);
+	publish_to_topic(HUMIDITY_TOPIC, mqtt_array, strlen(mqtt_array));
 	publish_to_topic(HEARTBEAT_TOPIC, "beat", sizeof("beat"));
 }
 
@@ -144,6 +186,11 @@ int main (void)
 		/* Checks the timer timeout. */
 		//sw_timer_task(&swt_module_inst);
 	}
+	
+	configure_port_pins_set(PIN_PA21);
+	port_pin_set_output_level(PIN_PA21, 1);
+	
+	configure_adc(ADC_POSITIVE_INPUT_PIN0);
 	
 	configure_i2c_hdc();
 	configure_i2c_tsl2561(ADDR_FLOAT);
